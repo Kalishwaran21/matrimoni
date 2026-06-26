@@ -1,0 +1,141 @@
+import React, { useState } from "react";
+import { ArrowRight, Heart, HeartHandshake, Menu, Search, ShieldCheck, Sparkles, Star, UsersRound, X, LogOut, UserRound, Bell } from "lucide-react";
+import { Link, NavLink } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+
+const publicLinks = [
+  ["Home", "/"],
+  ["About", "/about"],
+  ["Pricing", "/pricing"],
+  ["Contact", "/contact"]
+];
+
+const authedLinks = [
+  ["Matches", "/matches"],
+  ["Interests", "/interests"],
+  ["Chat", "/chat"],
+  ["Plans", "/subscription"],
+  ["Profile", "/profile"]
+];
+
+export default function Navbar() {
+  const { user, logout } = useAuth();
+  const [open, setOpen] = useState(false);
+  const links = user
+    ? (user.role !== "admin" && !user.isProfileSubmitted
+        ? [["Profile", "/profile"]]
+        : authedLinks)
+    : publicLinks;
+
+  return (
+    <header className="sticky top-0 z-40 border-b border-rose-100/60 bg-white/90 backdrop-blur-md shadow-sm">
+      <nav className="container-pad flex min-h-16 items-center justify-between gap-4">
+        {/* Logo */}
+        <Link to="/" className="flex items-center gap-2.5 text-lg font-black text-maroon-700">
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-maroon-600 to-pink-600 text-white shadow-sm animate-pulse-ring">
+            <Heart size={18} fill="currentColor" />
+          </span>
+          <span className="hidden sm:block">Atamio Matrimony</span>
+          <span className="block sm:hidden">Atamio</span>
+        </Link>
+
+        {/* Mobile hamburger */}
+        <button
+          className="rounded-xl p-2 text-maroon-700 hover:bg-maroon-50 md:hidden transition-colors"
+          onClick={() => setOpen((v) => !v)}
+          aria-label="Toggle menu"
+        >
+          {open ? <X /> : <Menu />}
+        </button>
+
+        {/* Desktop nav links */}
+        <div className="hidden items-center gap-1 md:flex">
+          {links.map(([label, href]) => (
+            <NavLink
+              key={href}
+              to={href}
+              className={({ isActive }) =>
+                `rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+                  isActive
+                    ? "bg-maroon-50 text-maroon-700"
+                    : "text-slate-600 hover:bg-slate-50 hover:text-maroon-700"
+                }`
+              }
+            >
+              {label}
+            </NavLink>
+          ))}
+        </div>
+
+        {/* Desktop CTA */}
+        <div className="hidden items-center gap-2 md:flex">
+          {user ? (
+            <>
+              <Link
+                to="/profile"
+                className="btn-ghost !px-3 !py-2"
+                title="My Profile"
+              >
+                <UserRound size={17} />
+              </Link>
+              <button
+                onClick={logout}
+                className="btn-secondary !px-3 !py-2"
+                title="Logout"
+              >
+                <LogOut size={17} />
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="btn-secondary !px-4 !py-2 text-sm">
+                Login
+              </Link>
+              <Link to="/register" className="btn-primary !px-4 !py-2 text-sm">
+                <Search size={15} /> Register Free
+              </Link>
+            </>
+          )}
+        </div>
+      </nav>
+
+      {/* Mobile menu */}
+      {open && (
+        <div className="border-t border-rose-100 bg-white px-4 pb-5 pt-3 md:hidden animate-fade-up">
+          <div className="grid gap-1">
+            {links.map(([label, href]) => (
+              <NavLink
+                key={href}
+                to={href}
+                onClick={() => setOpen(false)}
+                className={({ isActive }) =>
+                  `rounded-xl px-4 py-3 text-sm font-semibold transition-colors ${
+                    isActive ? "bg-maroon-50 text-maroon-700" : "text-slate-700 hover:bg-slate-50"
+                  }`
+                }
+              >
+                {label}
+              </NavLink>
+            ))}
+          </div>
+          <div className="mt-4 grid gap-2">
+            {user ? (
+              <button onClick={logout} className="btn-secondary">
+                <LogOut size={16} /> Logout
+              </button>
+            ) : (
+              <>
+                <Link to="/login" onClick={() => setOpen(false)} className="btn-secondary">
+                  Login
+                </Link>
+                <Link to="/register" onClick={() => setOpen(false)} className="btn-primary">
+                  Register Free
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </header>
+  );
+}

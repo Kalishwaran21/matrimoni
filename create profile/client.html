@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrimony - Create Your Profile</title>
+    <meta name="description" content="Create or update your matrimony profile. Fill in your details for admin approval and download your profile card as PNG.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="client.css">
+</head>
+<body>
+
+  <!-- Animated Background Blobs -->
+  <div class="bg-blob blob1"></div>
+  <div class="bg-blob blob2"></div>
+  <div class="bg-blob blob3"></div>
+
+  <div class="page-wrapper">
+
+    <!-- Header -->
+    <header class="page-header">
+      <div class="header-logo">
+        <span class="logo-icon">💍</span>
+        <span class="logo-text">MatriMonial</span>
+      </div>
+      <p class="header-tagline">Find Your Perfect Life Partner</p>
+    </header>
+
+    <!-- Form Card -->
+    <div class="form-card">
+      <div class="form-card-header">
+        <h1>Create Your Profile</h1>
+        <p>Fill in your details below — your profile will be reviewed by admin before going live.</p>
+      </div>
+
+      <form id="profile-reg-form" novalidate>
+
+        <!-- ── SECTION 1: Photo ── -->
+        <div class="section-block">
+          <div class="section-title"><span class="section-icon">📸</span> Profile Photo</div>
+          <div class="photo-upload-area" id="photo-drop-zone">
+            <div class="photo-preview-wrap" id="photo-preview-wrap">
+              <img id="photo-preview-img" src="" alt="Profile Preview" style="display:none;">
+              <div class="photo-placeholder" id="photo-placeholder">
+                <div class="photo-placeholder-icon">👤</div>
+                <p>Click or drag to upload your photo</p>
+                <span>JPG, PNG – Max 5MB</span>
+              </div>
+            </div>
+            <input type="file" id="client-photo" accept="image/*" required>
+            <label for="client-photo" class="photo-upload-btn" id="photo-upload-label">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Choose Photo
+            </label>
+          </div>
+        </div>
+
+        <!-- ── SECTION 2: Personal Info ── -->
+        <div class="section-block">
+          <div class="section-title"><span class="section-icon">👤</span> Personal Information</div>
+          <div class="form-grid">
+            <div class="form-group span-2">
+              <label for="client-name">Full Name <span class="req">*</span></label>
+              <input type="text" id="client-name" placeholder="E.g., Priya Sharma" required autocomplete="name">
+            </div>
+            <div class="form-group">
+              <label for="client-age">Age <span class="req">*</span></label>
+              <input type="number" id="client-age" min="18" max="80" placeholder="E.g., 25" required>
+            </div>
+            <div class="form-group">
+              <label for="client-dob">Date of Birth</label>
+              <input type="date" id="client-dob">
+            </div>
+            <div class="form-group">
+              <label for="client-gender">Gender <span class="req">*</span></label>
+              <select id="client-gender" required>
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="reg-marital">Marital Status <span class="req">*</span></label>
+              <select id="reg-marital" required><option value="">Select Status</option></select>
+            </div>
+            <div class="form-group">
+              <label for="reg-language">Mother Tongue <span class="req">*</span></label>
+              <select id="reg-language" required><option value="">Select Tongue</option></select>
+            </div>
+            <div class="form-group">
+              <label for="reg-religion">Religion <span class="req">*</span></label>
+              <select id="reg-religion" required><option value="">Select Religion</option></select>
+            </div>
+            <div class="form-group">
+              <label for="reg-caste">Caste <span class="req">*</span></label>
+              <select id="reg-caste" required><option value="">Select Caste</option></select>
+            </div>
+            <div class="form-group span-2">
+              <label for="client-subcaste">Sub Caste / Gotram</label>
+              <input type="text" id="client-subcaste" placeholder="E.g., Iyer, Iyengar...">
+            </div>
+          </div>
+        </div>
+
+        <!-- ── SECTION 2: Family Info ── -->
+        <div class="section-block">
+          <div class="section-title"><span class="section-icon">👨‍👩‍👧</span> Family Details</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="client-father">Father's Occupation</label>
+              <input type="text" id="client-father" placeholder="E.g., Business, Retired...">
+            </div>
+            <div class="form-group">
+              <label for="client-mother">Mother's Occupation</label>
+              <input type="text" id="client-mother" placeholder="E.g., Homemaker, Teacher...">
+            </div>
+            <div class="form-group">
+              <label for="client-siblings">No. of Siblings</label>
+              <input type="number" id="client-siblings" min="0" max="20" placeholder="E.g., 2">
+            </div>
+            <div class="form-group">
+              <label for="client-familytype">Family Type</label>
+              <select id="client-familytype">
+                <option value="">Select Type</option>
+                <option value="Joint Family">Joint Family</option>
+                <option value="Nuclear Family">Nuclear Family</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── SECTION 3: Education & Career ── -->
+        <div class="section-block">
+          <div class="section-title"><span class="section-icon">🎓</span> Education & Career</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="reg-education">Highest Education <span class="req">*</span></label>
+              <select id="reg-education" required><option value="">Select Education</option></select>
+            </div>
+            <div class="form-group">
+              <label for="reg-profession">Profession <span class="req">*</span></label>
+              <select id="reg-profession" required><option value="">Select Profession</option></select>
+            </div>
+            <div class="form-group">
+              <label for="client-salary">Monthly Income (INR) <span class="req">*</span></label>
+              <input type="number" id="client-salary" placeholder="E.g., 50000" required>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── SECTION 4: Physical Attributes ── -->
+        <div class="section-block">
+          <div class="section-title"><span class="section-icon">🧍</span> Physical Attributes</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="reg-height">Height <span class="req">*</span></label>
+              <select id="reg-height" required><option value="">Select Height</option></select>
+            </div>
+            <div class="form-group">
+              <label for="reg-weight">Weight <span class="req">*</span></label>
+              <select id="reg-weight" required><option value="">Select Weight</option></select>
+            </div>
+            <div class="form-group">
+              <label for="reg-physical">Physical Status <span class="req">*</span></label>
+              <select id="reg-physical" required><option value="">Select Status</option></select>
+            </div>
+            <div class="form-group">
+              <label for="reg-color">Complexion / Color</label>
+              <select id="reg-color"><option value="">Select Color</option></select>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── SECTION 5: Contact Details ── -->
+        <div class="section-block">
+          <div class="section-title"><span class="section-icon">📞</span> Contact Details</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="client-phone">Phone Number <span class="req">*</span></label>
+              <input type="tel" id="client-phone" placeholder="E.g., +91 9876543210" required>
+            </div>
+            <div class="form-group">
+              <label for="client-email">Email Address <span class="req">*</span></label>
+              <input type="email" id="client-email" placeholder="you@example.com" required>
+            </div>
+            <div class="form-group">
+              <label for="client-native">Native Place <span class="req">*</span></label>
+              <input type="text" id="client-native" placeholder="E.g., Madurai" required>
+            </div>
+            <div class="form-group">
+              <label for="client-current">Current Place <span class="req">*</span></label>
+              <input type="text" id="client-current" placeholder="E.g., Chennai" required>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── SECTION 6: Horoscope ── -->
+        <div class="section-block">
+          <div class="section-title"><span class="section-icon">⭐</span> Horoscope Details</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="reg-rasi">Rasi <span class="req">*</span></label>
+              <select id="reg-rasi" required><option value="">Select Rasi</option></select>
+            </div>
+            <div class="form-group">
+              <label for="reg-natchathiram">Natchathiram <span class="req">*</span></label>
+              <select id="reg-natchathiram" required><option value="">Select Natchathiram</option></select>
+            </div>
+            <div class="form-group">
+              <label for="reg-dosham">Dosham <span class="req">*</span></label>
+              <select id="reg-dosham" required><option value="">Select Dosham</option></select>
+            </div>
+            <div class="form-group">
+              <label for="client-gothram">Gothram / Kulam</label>
+              <input type="text" id="client-gothram" placeholder="E.g., Bharadwaja">
+            </div>
+          </div>
+        </div>
+
+        <!-- ── SECTION 7: About ── -->
+        <div class="section-block">
+          <div class="section-title"><span class="section-icon">💬</span> About Yourself</div>
+          <div class="form-group">
+            <label for="client-about">Brief Bio</label>
+            <textarea id="client-about" rows="4" placeholder="Write a few lines about yourself, your interests, and what you're looking for in a partner..."></textarea>
+          </div>
+        </div>
+
+        <!-- ── Action Buttons ── -->
+        <div class="action-bar">
+          <button type="button" class="btn-download-direct" id="direct-download-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download as PNG
+          </button>
+          <button type="submit" class="btn-primary" id="submit-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Send to Admin
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+    <div class="page-footer">
+      <a href="admin.html">Go to Admin Dashboard →</a>
+    </div>
+
+  </div><!-- end page-wrapper -->
+
+  <!-- ══════════════════════════════════════
+       PROFILE CARD PREVIEW MODAL
+  ══════════════════════════════════════ -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal-box">
+      <button class="modal-close" id="modal-close" aria-label="Close">&times;</button>
+      <h2 class="modal-title">Your Profile Card</h2>
+      <p class="modal-subtitle">Preview how your profile will appear. Download it as a PNG image.</p>
+
+      <!-- ── THE PRINTABLE / DOWNLOADABLE PROFILE CARD ── -->
+      <div class="profile-card" id="profile-card">
+        <div class="card-top-banner"></div>
+
+        <div class="card-photo-ring">
+          <img id="card-photo" src="" alt="Profile Photo">
+          <div class="card-photo-badge">💍</div>
+        </div>
+
+        <div class="card-body">
+          <div class="card-name" id="card-name">—</div>
+          <div class="card-tagline" id="card-tagline">—</div>
+
+          <div class="card-divider"></div>
+
+          <div class="card-details-grid">
+            <div class="card-detail-item">
+              <span class="detail-icon">🎂</span>
+              <div><span class="detail-label">Age</span><span class="detail-value" id="cd-age">—</span></div>
+            </div>
+            <div class="card-detail-item">
+              <span class="detail-icon">⚧</span>
+              <div><span class="detail-label">Gender</span><span class="detail-value" id="cd-gender">—</span></div>
+            </div>
+            <div class="card-detail-item">
+              <span class="detail-icon">📏</span>
+              <div><span class="detail-label">Height</span><span class="detail-value" id="cd-height">—</span></div>
+            </div>
+            <div class="card-detail-item">
+              <span class="detail-icon">⚖️</span>
+              <div><span class="detail-label">Weight</span><span class="detail-value" id="cd-weight">—</span></div>
+            </div>
+            <div class="card-detail-item">
+              <span class="detail-icon">💍</span>
+              <div><span class="detail-label">Status</span><span class="detail-value" id="cd-marital">—</span></div>
+            </div>
+            <div class="card-detail-item">
+              <span class="detail-icon">🗣️</span>
+              <div><span class="detail-label">Tongue</span><span class="detail-value" id="cd-lang">—</span></div>
+            </div>
+            <div class="card-detail-item">
+              <span class="detail-icon">⭐</span>
+              <div><span class="detail-label">Rasi</span><span class="detail-value" id="cd-rasi">—</span></div>
+            </div>
+            <div class="card-detail-item">
+              <span class="detail-icon">🌟</span>
+              <div><span class="detail-label">Star</span><span class="detail-value" id="cd-star">—</span></div>
+            </div>
+            <div class="card-detail-item">
+              <span class="detail-icon">🛕</span>
+              <div><span class="detail-label">Religion</span><span class="detail-value" id="cd-religion">—</span></div>
+            </div>
+            <div class="card-detail-item">
+              <span class="detail-icon">🏷️</span>
+              <div><span class="detail-label">Caste</span><span class="detail-value" id="cd-caste">—</span></div>
+            </div>
+            <div class="card-detail-item">
+              <span class="detail-icon">🎓</span>
+              <div><span class="detail-label">Education</span><span class="detail-value" id="cd-edu">—</span></div>
+            </div>
+            <div class="card-detail-item">
+              <span class="detail-icon">💼</span>
+              <div><span class="detail-label">Profession</span><span class="detail-value" id="cd-profession">—</span></div>
+            </div>
+            <div class="card-detail-item">
+              <span class="detail-icon">💰</span>
+              <div><span class="detail-label">Income</span><span class="detail-value" id="cd-salary">—</span></div>
+            </div>
+            <div class="card-detail-item">
+              <span class="detail-icon">🏡</span>
+              <div><span class="detail-label">Native Place</span><span class="detail-value" id="cd-native">—</span></div>
+            </div>
+            <div class="card-detail-item">
+              <span class="detail-icon">📍</span>
+              <div><span class="detail-label">Current Place</span><span class="detail-value" id="cd-current">—</span></div>
+            </div>
+            <div class="card-detail-item">
+              <span class="detail-icon">🎨</span>
+              <div><span class="detail-label">Color</span><span class="detail-value" id="cd-color">—</span></div>
+            </div>
+          </div>
+
+          <div class="card-divider"></div>
+
+          <div class="card-about" id="cd-about"></div>
+
+          <div class="card-contact-row">
+            <span id="cd-phone" class="card-contact-chip">📞 —</span>
+            <span id="cd-email" class="card-contact-chip">✉️ —</span>
+          </div>
+
+          <div class="card-footer-watermark">MatriMonial • Find Your Perfect Match</div>
+        </div>
+      </div><!-- end profile-card -->
+
+      <div class="modal-actions">
+        <button class="btn-download" id="download-png-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download as PNG
+        </button>
+        <button class="btn-submit-from-modal" id="submit-from-modal-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Submit to Admin
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast notification -->
+  <div class="toast" id="toast"></div>
+
+  <!-- html2canvas CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="client.js"></script>
+</body>
+</html>

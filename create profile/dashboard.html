@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrimony - Main Live Dashboard</title>
+    <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+    <header class="top-filter-bar">
+        <div class="logo">SoulMate</div>
+        <div class="horizontal-filters">
+            <select id="rasi-select"><option value="">Select Rasi</option></select>
+            <select id="natchathiram-select"><option value="">Select Natchathiram</option></select>
+            <select id="dosham-select"><option value="">Select Dosham</option></select>
+            <select id="height-select"><option value="">Select Height</option></select>
+            <select id="weight-select"><option value="">Select Weight</option></select>
+            <select id="marital-select"><option value="">Marital Status</option></select>
+            <select id="language-select"><option value="">Mother Tongue</option></select>
+            <select id="physical-select"><option value="">Physical Status</option></select>
+        </div>
+        <div style="margin-left: auto;"><a href="client.html" class="add-prof-link">+ Create Profile</a></div>
+    </header>
+
+    <div class="dashboard-container">
+        <aside class="sidebar-filters">
+            <h3>Refine Search</h3>
+            <div class="filter-group">
+                <label for="religion-select">Religion</label>
+                <select id="religion-select"><option value="">All Religions</option></select>
+            </div>
+            <div class="filter-group">
+                <label for="caste-select">Caste / Division</label>
+                <select id="caste-select"><option value="">Select Caste</option></select>
+            </div>
+            <div class="filter-group">
+                <label>Age Range</label>
+                <div class="range-slider-wrapper">
+                    <div class="slider-track" id="age-track"></div>
+                    <input type="range" id="age-min-input" min="18" max="80" value="18">
+                    <input type="range" id="age-max-input" min="18" max="80" value="40">
+                </div>
+                <div class="range-values"><span id="age-min-val">18 Yrs</span><span id="age-max-val">40 Yrs</span></div>
+            </div>
+            <div class="filter-group">
+                <label for="education-select">Education</label>
+                <select id="education-select"><option value="">Any Education</option></select>
+            </div>
+            <div class="filter-group">
+                <label for="profession-select">Profession</label>
+                <select id="profession-select"><option value="">Any Profession</option></select>
+            </div>
+            <div class="filter-group">
+                <label for="location-select">Country Location</label>
+                <select id="location-select"><option value="">Any Country</option></select>
+            </div>
+            <div class="filter-group">
+                <label>Salary Range (INR)</label>
+                <div class="range-slider-wrapper">
+                    <div class="slider-track" id="salary-track"></div>
+                    <input type="range" id="salary-min-input" min="0" max="10000000" value="0" step="100000">
+                    <input type="range" id="salary-max-input" min="0" max="10000000" value="5000000" step="100000">
+                </div>
+                <div class="range-values"><span id="salary-min-val">0 L</span><span id="salary-max-val">50 L</span></div>
+            </div>
+        </aside>
+
+        <main class="profile-grid" id="master-profile-grid">
+            <div class="profile-card">
+                <div class="profile-image"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80" alt="Photo"></div>
+                <div class="profile-details">
+                    <h3>lokesh kanagavalli (25)</h3>
+                    <p><strong>Religion/Caste:</strong> Hindu, Pillai</p>
+                    <p><strong>Edu & Profession:</strong> B.Tech, Software Engineer</p>
+                    <p><strong>Location & Income:</strong> India | ₹8,000,000 /Yr</p>
+                    <p><strong>Habits:</strong> Vegetarian | Never Married</p>
+                    <p><strong>Astro Info:</strong> Mesham, Aswini | No Dosham</p>
+                    <p><strong>Physique:</strong> 162 cm | 55 Kg | Normal</p>
+                    <button class="interest-btn">Interested</button>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="dashboard.js"></script>
+</body>
+</html>
