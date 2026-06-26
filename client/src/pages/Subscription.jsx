@@ -74,7 +74,7 @@ export default function Subscription() {
         order_id: order.id,
         amount: order.amount,
         currency: order.currency,
-        name: "Atamio Matrimony",
+        name: "Soulmate Matrimony",
         description: `${planName} Membership`,
         theme: { color: "#9f1239" },
         prefill: {
@@ -120,7 +120,7 @@ export default function Subscription() {
       <div className="text-center">
         <p className="label">Membership</p>
         <h1 className="mt-2 text-3xl font-black text-slate-950">
-          Upgrade Your <span className="text-maroon-700">Atamio</span> Experience
+          Upgrade Your <span className="text-maroon-700">Soulmate</span> Experience
         </h1>
         <p className="mt-3 text-sm text-slate-500 max-w-lg mx-auto">
           Unlock premium features to connect faster, chat freely, and stand out to potential matches.

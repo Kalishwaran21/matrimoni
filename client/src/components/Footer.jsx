@@ -34,14 +34,14 @@ export default function Footer() {
               <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-maroon-600 to-pink-600 text-white">
                 <Heart size={18} fill="currentColor" />
               </span>
-              Atamio Matrimony
+              Soulmate Matrimony
             </Link>
             <p className="mt-4 max-w-xs text-sm leading-7 text-slate-400">
               India's most trusted matrimony platform. Connecting genuine profiles for meaningful, lifelong partnerships.
             </p>
             <div className="mt-6 grid gap-2">
-              <a href="mailto:hello@atamio.in" className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors">
-                <Mail size={14} /> hello@atamio.in
+              <a href="mailto:hello@soulmate.in" className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors">
+                <Mail size={14} /> hello@soulmate.in
               </a>
               <a href="tel:+918000000000" className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors">
                 <Phone size={14} /> +91 80000 00000
@@ -74,7 +74,7 @@ export default function Footer() {
 
         {/* Divider + copyright */}
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-slate-800 pt-8 text-xs text-slate-500 sm:flex-row">
-          <p>© {new Date().getFullYear()} Atamio Matrimony. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Soulmate Matrimony. All rights reserved.</p>
           <p className="flex items-center gap-1.5">
             Made with <Heart size={12} fill="currentColor" className="text-pink-500" /> in India
           </p>

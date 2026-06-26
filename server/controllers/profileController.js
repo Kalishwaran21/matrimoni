@@ -29,7 +29,7 @@ const calculateCompletion = (profile) => {
 const uploadBuffer = (file) =>
   new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
-      { folder: "atamio-matrimony/profiles", resource_type: "image" },
+      { folder: "soulmate-matrimony/profiles", resource_type: "image" },
       (error, result) => (error ? reject(error) : resolve(result))
     );
     stream.end(file.buffer);

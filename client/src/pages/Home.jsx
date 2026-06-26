@@ -66,7 +66,7 @@ export default function Home() {
             </h1>
 
             <p className="mt-6 max-w-lg text-lg leading-8 text-rose-100">
-              Join Atamio Matrimony and connect with genuine profiles to find your perfect match. Over{" "}
+              Join Soulmate Matrimony and connect with genuine profiles to find your perfect match. Over{" "}
               <strong className="text-white">32,000+ verified members</strong> are waiting.
             </p>
 
@@ -126,7 +126,7 @@ export default function Home() {
               <span className="text-maroon-700">serious compatibility</span>
             </h2>
             <p className="section-subtitle mx-auto max-w-xl">
-              Atamio blends detailed profiles, privacy-first communication, curated
+              Soulmate blends detailed profiles, privacy-first communication, curated
               partner preferences, and admin moderation for families and individuals.
             </p>
           </div>

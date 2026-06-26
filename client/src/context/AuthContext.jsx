@@ -5,9 +5,9 @@ import { api } from "../services/api";
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [token, setToken] = useState(() => localStorage.getItem("atamio_token"));
+  const [token, setToken] = useState(() => localStorage.getItem("soulmate_token"));
   const [user, setUser] = useState(() => {
-    const stored = localStorage.getItem("atamio_user");
+    const stored = localStorage.getItem("soulmate_user");
     return stored ? JSON.parse(stored) : null;
   });
   const [loading, setLoading] = useState(false);
@@ -18,14 +18,14 @@ export const AuthProvider = ({ children }) => {
       .get("/auth/me")
       .then(({ data }) => {
         setUser(data.user);
-        localStorage.setItem("atamio_user", JSON.stringify(data.user));
+        localStorage.setItem("soulmate_user", JSON.stringify(data.user));
       })
       .catch(() => logout());
   }, [token]);
 
   const persist = (data) => {
-    localStorage.setItem("atamio_token", data.token);
-    localStorage.setItem("atamio_user", JSON.stringify(data.user));
+    localStorage.setItem("soulmate_token", data.token);
+    localStorage.setItem("soulmate_user", JSON.stringify(data.user));
     setToken(data.token);
     setUser(data.user);
   };
@@ -53,8 +53,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem("atamio_token");
-    localStorage.removeItem("atamio_user");
+    localStorage.removeItem("soulmate_token");
+    localStorage.removeItem("soulmate_user");
     setToken(null);
     setUser(null);
   };
@@ -63,7 +63,7 @@ export const AuthProvider = ({ children }) => {
     setUser((prev) => {
       if (!prev) return null;
       const next = { ...prev, ...fields };
-      localStorage.setItem("atamio_user", JSON.stringify(next));
+      localStorage.setItem("soulmate_user", JSON.stringify(next));
       return next;
     });
   };

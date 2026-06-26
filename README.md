@@ -1,6 +1,6 @@
-# Atamio Matrimony
+# Soulmate Matrimony
 
-Atamio Matrimony is a full-stack MERN matrimony platform with profile management, match search, partner preferences, interests, real-time chat, subscriptions, notifications, and an admin panel.
+Soulmate Matrimony is a full-stack MERN matrimony platform with profile management, match search, partner preferences, interests, real-time chat, subscriptions, notifications, and an admin panel.
 
 ## Stack
 

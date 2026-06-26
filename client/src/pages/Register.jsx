@@ -42,7 +42,7 @@ export default function Register() {
           className="rounded-2xl border border-rose-100 bg-white p-8 shadow-soft"
         >
           <p className="label">Join free</p>
-          <h1 className="mt-2 text-3xl font-black text-slate-950">Create your Atamio profile</h1>
+          <h1 className="mt-2 text-3xl font-black text-slate-950">Create your Soulmate profile</h1>
           <p className="mt-2 text-sm text-slate-500">
             Already registered?{" "}
             <Link to="/login" className="font-semibold text-maroon-700 hover:underline">

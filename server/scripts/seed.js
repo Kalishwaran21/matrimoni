@@ -7,7 +7,7 @@ import Interest from "../models/Interest.js";
 import Notification from "../models/Notification.js";
 import Subscription from "../models/Subscription.js";
 
-const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/atamio-matrimony";
+const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/soulmate-matrimony";
 
 const seedData = async () => {
   try {
@@ -26,8 +26,8 @@ const seedData = async () => {
 
     // 1. Create Admin
     const admin = await User.create({
-      fullName: "Atamio Admin",
-      email: "admin@atamio.com",
+      fullName: "Soulmate Admin",
+      email: "admin@soulmate.com",
       mobile: "9876543210",
       password: "Password123",
       gender: "Other",
@@ -35,7 +35,7 @@ const seedData = async () => {
       isActive: true,
       isPremium: true
     });
-    console.log("Admin user seeded: admin@atamio.com / Password123");
+    console.log("Admin user seeded: admin@soulmate.com / Password123");
 
     // 2. Create Groom Users
     const groom1 = await User.create({

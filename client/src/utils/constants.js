@@ -25,7 +25,7 @@ export const testimonials = [
   },
   {
     name: "Priya & Rohan",
-    text: "Atamio made a big decision feel calm, organized, and personal."
+    text: "Soulmate made a big decision feel calm, organized, and personal."
   }
 ];
 

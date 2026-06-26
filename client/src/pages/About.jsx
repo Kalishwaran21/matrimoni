@@ -9,7 +9,7 @@ const team = [
 ];
 
 const milestones = [
-  { year: "2020", desc: "Atamio Matrimony founded in Chennai" },
+  { year: "2020", desc: "Soulmate Matrimony founded in Chennai" },
   { year: "2021", desc: "Reached 5,000 verified profiles" },
   { year: "2022", desc: "Launched Premium membership plans" },
   { year: "2023", desc: "8,000+ successful matches celebrated" },
@@ -26,9 +26,9 @@ export default function About() {
             <Heart size={32} fill="currentColor" className="text-pink-300" />
           </div>
           <p className="label text-maroon-300">Our story</p>
-          <h1 className="mt-3 text-4xl font-black sm:text-5xl">About Atamio Matrimony</h1>
+          <h1 className="mt-3 text-4xl font-black sm:text-5xl">About Soulmate Matrimony</h1>
           <p className="mt-5 mx-auto max-w-2xl text-lg leading-8 text-maroon-200">
-            We believe every person deserves a meaningful connection. Atamio was built to make the
+            We believe every person deserves a meaningful connection. Soulmate was built to make the
             search for a life partner dignified, private, and purposeful.
           </p>
         </div>
@@ -44,7 +44,7 @@ export default function About() {
               <span className="text-maroon-700">intention and trust</span>
             </h2>
             <p className="section-subtitle">
-              Atamio Matrimony was founded with one goal: to provide a platform where families and
+              Soulmate Matrimony was founded with one goal: to provide a platform where families and
               individuals can find life partners based on real compatibility — not just browsing.
             </p>
             <p className="mt-4 leading-7 text-slate-600">
@@ -52,7 +52,7 @@ export default function About() {
               human review to create a space that families trust and individuals feel safe in.
             </p>
             <Link to="/register" className="btn-primary mt-8 inline-flex">
-              Join Atamio Free →
+              Join Soulmate Free →
             </Link>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -93,7 +93,7 @@ export default function About() {
       <section className="bg-white py-20">
         <div className="container-pad">
           <p className="label text-center">The team</p>
-          <h2 className="mt-3 section-title text-center mb-12">People behind Atamio</h2>
+          <h2 className="mt-3 section-title text-center mb-12">People behind Soulmate</h2>
           <div className="grid gap-6 sm:grid-cols-3 max-w-3xl mx-auto">
             {team.map(({ name, role, initial }) => (
               <div key={name} className="panel card-hover text-center">

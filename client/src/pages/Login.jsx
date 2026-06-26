@@ -30,7 +30,7 @@ export default function Login() {
           className="rounded-2xl border border-rose-100 bg-white p-8 shadow-soft"
         >
           <p className="label">Welcome back</p>
-          <h1 className="mt-2 text-3xl font-black text-slate-950">Sign in to Atamio</h1>
+          <h1 className="mt-2 text-3xl font-black text-slate-950">Sign in to Soulmate</h1>
           <p className="mt-2 text-sm text-slate-500">
             Don't have an account?{" "}
             <Link to="/register" className="font-semibold text-maroon-700 hover:underline">

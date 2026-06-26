@@ -49,7 +49,7 @@ app.use(
   })
 );
 
-app.get("/api/health", (req, res) => res.json({ ok: true, name: "Atamio Matrimony API" }));
+app.get("/api/health", (req, res) => res.json({ ok: true, name: "Soulmate Matrimony API" }));
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/search", searchRoutes);

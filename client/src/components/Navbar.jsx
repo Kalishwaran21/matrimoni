@@ -35,8 +35,8 @@ export default function Navbar() {
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-maroon-600 to-pink-600 text-white shadow-sm animate-pulse-ring">
             <Heart size={18} fill="currentColor" />
           </span>
-          <span className="hidden sm:block">Atamio Matrimony</span>
-          <span className="block sm:hidden">Atamio</span>
+          <span className="hidden sm:block">Soulmate Matrimony</span>
+          <span className="block sm:hidden">Soulmate</span>
         </Link>
 
         {/* Mobile hamburger */}

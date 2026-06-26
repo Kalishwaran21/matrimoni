@@ -38,7 +38,7 @@ export default function Contact() {
           {/* Contact info */}
           <div className="grid gap-5">
             {[
-              { icon: Mail, label: "Email", value: "hello@atamio.in", href: "mailto:hello@atamio.in" },
+              { icon: Mail, label: "Email", value: "hello@soulmate.in", href: "mailto:hello@soulmate.in" },
               { icon: Phone, label: "Phone", value: "+91 80000 00000", href: "tel:+918000000000" },
               { icon: MapPin, label: "Office", value: "Chennai, Tamil Nadu, India", href: "#" },
               { icon: MessageCircle, label: "Support Hours", value: "Mon – Sat, 9 AM – 6 PM IST", href: "#" }
