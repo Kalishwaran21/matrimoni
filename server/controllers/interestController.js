@@ -1,6 +1,7 @@
 import Interest from "../models/Interest.js";
 import Notification from "../models/Notification.js";
 import Profile from "../models/Profile.js";
+import Chat from "../models/Chat.js";
 
 export const sendInterest = async (req, res, next) => {
   try {
@@ -43,6 +44,14 @@ export const respondInterest = async (req, res, next) => {
         title: "Interest accepted",
         message: `${req.user.fullName} accepted your interest`
       });
+
+      // Auto-initialize Chat document
+      const participants = [interest.from, interest.to].sort();
+      await Chat.findOneAndUpdate(
+        { participants: { $all: participants, $size: 2 } },
+        { $setOnInsert: { participants } },
+        { new: true, upsert: true }
+      );
     }
 
     res.json({ interest });

@@ -9,7 +9,7 @@ import { DATA } from "../utils/constants";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 
-const TABS = ["basic", "religion", "location", "education", "career", "family", "horoscope", "about", "photos", "preferences"];
+const TABS = ["basic", "religion", "location", "education", "career", "family", "horoscope", "assets", "about", "photos", "preferences"];
 const initial = Object.fromEntries(TABS.map((s) => [s, s === "about" ? "" : {}]));
 
 export default function Profile() {
@@ -808,6 +808,51 @@ export default function Profile() {
         </div>
       </section>
 
+      {/* ── SECTION: Assets Details ── */}
+      <section className="panel">
+        <h2 className="mb-5 text-xl font-black text-maroon-800 flex items-center gap-2">
+          <span>🏡</span> {t("secAssets")}
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <label className="flex flex-col gap-1.5">
+            <span className="label">{t("fieldHouse")}</span>
+            <select
+              className="field mt-1"
+              disabled={!isEditMode}
+              value={form.assets?.house || ""}
+              onChange={(e) => update("assets", "house", e.target.value)}
+            >
+              <option value="">Select House Type</option>
+              <option value="Own House">{t("Own House")}</option>
+              <option value="Rented House">{t("Rented House")}</option>
+              <option value="None / Others">{t("None / Others")}</option>
+            </select>
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="label">{t("fieldLand")}</span>
+            <input
+              className="field mt-1"
+              type="text"
+              disabled={!isEditMode}
+              value={form.assets?.land || ""}
+              onChange={(e) => update("assets", "land", e.target.value)}
+              placeholder={language === "en" ? "E.g., 2 Acres / 5 Cents" : "உதாரணம்: 2 ஏக்கர் / 5 சென்ட்"}
+            />
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="label">{t("fieldAssetValue")}</span>
+            <input
+              className="field mt-1"
+              type="text"
+              disabled={!isEditMode}
+              value={form.assets?.totalValue || ""}
+              onChange={(e) => update("assets", "totalValue", e.target.value)}
+              placeholder={language === "en" ? "E.g., ₹50 Lakhs / ₹1 Crore" : "உதாரணம்: ₹50 லட்சம் / ₹1 கோடி"}
+            />
+          </label>
+        </div>
+      </section>
+
       {/* ── SECTION 9: About Yourself ── */}
       <section className="panel">
         <h2 className="mb-5 text-xl font-black text-maroon-800 flex items-center gap-2">
@@ -1072,6 +1117,16 @@ export default function Profile() {
                     <div>
                       <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{t("fieldDosham")}</p>
                       <p className="mt-0.5 font-bold text-slate-800">{form.horoscope?.dosham || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{t("fieldHouse")} / {t("fieldLand")}</p>
+                      <p className="mt-0.5 font-bold text-slate-800">
+                        {form.assets?.house ? `${t(form.assets.house)}${form.assets.land ? `, ${form.assets.land}` : ""}` : "—"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{t("fieldAssetValue")}</p>
+                      <p className="mt-0.5 font-bold text-slate-800">{form.assets?.totalValue || "—"}</p>
                     </div>
                   </div>
 

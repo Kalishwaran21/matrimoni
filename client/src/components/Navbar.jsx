@@ -1,16 +1,41 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ArrowRight, Heart, HeartHandshake, Menu, Search, ShieldCheck, Sparkles, Star, UsersRound, X, LogOut, UserRound, Bell } from "lucide-react";
 import { Link, NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
+import { api } from "../services/api";
+import { toast } from "./Toast";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const { t, language, setLanguage } = useLanguage();
   const [open, setOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [notifOpen, setNotifOpen] = useState(false);
 
   const toggleLanguage = () => {
     setLanguage(language === "en" ? "ta" : "en");
+  };
+
+  useEffect(() => {
+    if (!user) return;
+    api.get("/notifications").then(({ data }) => {
+      setNotifications(data.notifications || []);
+    }).catch((err) => console.log(err));
+  }, [user]);
+
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
+
+  const markAllAsRead = async () => {
+    const unreadIds = notifications.filter((n) => !n.isRead).map((n) => n._id);
+    if (!unreadIds.length) return;
+    try {
+      await api.post("/notifications/mark-read", { ids: unreadIds });
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      toast.success(language === "en" ? "All marked as read" : "அனைத்தும் படித்தவையாக குறிக்கப்பட்டது");
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const publicLinks = [
@@ -55,6 +80,21 @@ export default function Navbar() {
           >
             🌐 {language === "en" ? "தமிழ்" : "EN"}
           </button>
+          
+          {user && (
+            <div className="relative">
+              <button
+                onClick={() => setNotifOpen(!notifOpen)}
+                className="rounded-xl p-2 text-maroon-700 hover:bg-maroon-50 transition-colors relative"
+              >
+                <Bell size={20} />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-rose-600" />
+                )}
+              </button>
+            </div>
+          )}
+
           <button
             className="rounded-xl p-2 text-maroon-700 hover:bg-maroon-50 transition-colors"
             onClick={() => setOpen((v) => !v)}
@@ -96,6 +136,61 @@ export default function Navbar() {
 
           {user ? (
             <>
+              {/* Notification Bell with Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setNotifOpen(!notifOpen)}
+                  className="btn-ghost !px-3 !py-2 relative"
+                  title="Notifications"
+                >
+                  <Bell size={18} />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-600 text-[10px] font-bold text-white">
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                {notifOpen && (
+                  <div className="absolute right-0 mt-3 w-80 rounded-2xl border border-rose-100 bg-white p-4 shadow-xl animate-scale-up">
+                    <div className="flex items-center justify-between border-b border-rose-50 pb-2.5 mb-2">
+                      <span className="font-black text-slate-900 text-sm">
+                        {language === "en" ? "Notifications" : "அறிவிப்புகள்"}
+                      </span>
+                      {unreadCount > 0 && (
+                        <button
+                          onClick={markAllAsRead}
+                          className="text-xs font-bold text-maroon-700 hover:underline"
+                        >
+                          {language === "en" ? "Mark read" : "படித்தவை"}
+                        </button>
+                      )}
+                    </div>
+                    <div className="max-h-60 overflow-y-auto space-y-2">
+                      {notifications.length === 0 ? (
+                        <p className="text-xs text-slate-400 py-4 text-center">
+                          {language === "en" ? "No new notifications" : "புதிய அறிவிப்புகள் எதுவும் இல்லை"}
+                        </p>
+                      ) : (
+                        notifications.slice(0, 10).map((n) => (
+                          <div
+                            key={n._id}
+                            className={`p-2.5 rounded-xl border transition-colors ${
+                              n.isRead
+                                ? "bg-slate-50/50 border-slate-100 text-slate-500"
+                                : "bg-rose-50/40 border-rose-100/60 text-slate-800 font-medium"
+                            }`}
+                          >
+                            <p className="text-xs font-bold text-slate-900">{n.title}</p>
+                            <p className="text-[11px] mt-0.5 text-slate-500">{n.message}</p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <Link
                 to="/profile"
                 className="btn-ghost !px-3 !py-2"
@@ -123,6 +218,9 @@ export default function Navbar() {
           )}
         </div>
       </nav>
+
+      {/* Mobile notifications overlay drawer */}
+      {notifOpen && mdViewAlerts(notifOpen, notifications, unreadCount, markAllAsRead, language, setNotifOpen)}
 
       {/* Mobile menu */}
       {open && (
@@ -162,5 +260,54 @@ export default function Navbar() {
         </div>
       )}
     </header>
+  );
+}
+
+function mdViewAlerts(notifOpen, notifications, unreadCount, markAllAsRead, language, setNotifOpen) {
+  return (
+    <div className="fixed inset-0 z-50 bg-slate-900/60 md:hidden backdrop-blur-sm flex justify-end">
+      <div className="w-80 bg-white h-full p-5 flex flex-col shadow-2xl animate-fade-left">
+        <div className="flex items-center justify-between border-b border-rose-100 pb-4 mb-4">
+          <span className="font-black text-slate-950 text-lg">
+            {language === "en" ? "Notifications" : "அறிவிப்புகள்"}
+          </span>
+          <button
+            onClick={() => setNotifOpen(false)}
+            className="p-1 rounded-lg text-slate-400 hover:bg-slate-100"
+          >
+            <X size={20} />
+          </button>
+        </div>
+        
+        {unreadCount > 0 && (
+          <button
+            onClick={markAllAsRead}
+            className="btn-secondary w-full py-2 mb-4 text-xs font-bold"
+          >
+            {language === "en" ? "Mark all as read" : "அனைத்தையும் படித்தவையாக குறிக்கவும்"}
+          </button>
+        )}
+
+        <div className="flex-1 overflow-y-auto space-y-2">
+          {notifications.length === 0 ? (
+            <p className="text-xs text-slate-400 py-10 text-center">
+              {language === "en" ? "No new notifications" : "புதிய அறிவிப்புகள் எதுவும் இல்லை"}
+            </p>
+          ) : (
+            notifications.map((n) => (
+              <div
+                key={n._id}
+                className={`p-3 rounded-xl border ${
+                  n.isRead ? "bg-slate-50 border-slate-100" : "bg-rose-50/50 border-rose-100"
+                }`}
+              >
+                <p className="text-xs font-bold text-slate-900">{n.title}</p>
+                <p className="text-[11px] text-slate-500 mt-1">{n.message}</p>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

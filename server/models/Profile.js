@@ -48,6 +48,11 @@ const profileSchema = new mongoose.Schema(
       nakshatra: String,
       dosham: String
     },
+    assets: {
+      house: { type: String, enum: ["Own House", "Rented House", "None / Others"], default: "None / Others" },
+      land: String,
+      totalValue: String
+    },
     about: String,
     preferences: {
       ageMin: Number,

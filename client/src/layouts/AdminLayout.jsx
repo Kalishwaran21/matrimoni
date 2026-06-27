@@ -1,11 +1,12 @@
 import React from "react";
-import { BarChart3, Flag, LayoutDashboard, Users, ShieldCheck } from "lucide-react";
+import { BarChart3, Flag, LayoutDashboard, Users, ShieldCheck, UserPlus } from "lucide-react";
 import { NavLink, Outlet } from "react-router-dom";
 import Navbar from "../components/Navbar";
 
 const adminLinks = [
   ["Dashboard", "/admin", LayoutDashboard],
   ["Users", "/admin/users", Users],
+  ["Create Profile", "/admin/create-profile", UserPlus],
   ["Approvals", "/admin/approvals", ShieldCheck],
   ["Reports", "/admin/reports", Flag],
   ["Analytics", "/admin/analytics", BarChart3]

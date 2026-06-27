@@ -221,7 +221,7 @@ export default function ProfileDetail() {
       )}
 
       {/* Detail sections */}
-      {["basic", "religion", "career", "family", "lifestyle"].map((section) => {
+      {["basic", "religion", "career", "family", "assets"].map((section) => {
         const entries = Object.entries(profile[section] || {}).filter(([, v]) => v !== "" && v !== null && v !== undefined);
         if (!entries.length) return null;
         return (

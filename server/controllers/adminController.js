@@ -95,3 +95,33 @@ export const approveProfile = async (req, res, next) => {
     next(error);
   }
 };
+
+export const createClientProfile = async (req, res, next) => {
+  try {
+    const { email, password, fullName, mobile, gender, profileData } = req.body;
+
+    const existing = await User.findOne({ email: email.toLowerCase() });
+    if (existing) {
+      return res.status(409).json({ message: "Email already registered" });
+    }
+
+    const user = await User.create({
+      email,
+      password,
+      fullName,
+      mobile,
+      gender
+    });
+
+    const profile = await Profile.create({
+      user: user._id,
+      ...profileData,
+      isSubmitted: true,
+      isApproved: true
+    });
+
+    res.status(201).json({ message: "Client profile created successfully", userId: user._id });
+  } catch (error) {
+    next(error);
+  }
+};

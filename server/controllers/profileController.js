@@ -83,7 +83,7 @@ export const getProfile = async (req, res, next) => {
     let isContactShared = false;
     let interest = null;
 
-    if (isOwnProfile || isAdmin) {
+    if (isOwnProfile || isAdmin || req.user.isPremium) {
       isContactShared = true;
     } else {
       // Find interest between the two users

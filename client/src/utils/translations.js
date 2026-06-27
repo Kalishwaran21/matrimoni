@@ -76,6 +76,7 @@ export const translations = {
     secHoroscope: "Horoscope Details",
     secAbout: "About Yourself",
     secPreferences: "Partner Preferences",
+    secAssets: "Assets Details",
 
     // Profile Fields
     fieldName: "Full Name",
@@ -124,6 +125,9 @@ export const translations = {
     prefJob: "Expected Job / Profession",
     prefSalary: "Expected Min Income (₹ p.a.)",
     prefLanguage: "Expected Mother Tongue",
+    fieldHouse: "House Ownership",
+    fieldLand: "Land Details",
+    fieldAssetValue: "Total Asset Value",
 
     // Search Page
     advancedSearch: "Advanced Partner Search",
@@ -230,7 +234,10 @@ export const translations = {
     "Gujarati": "Gujarati",
     "Punjabi": "Punjabi",
     "Odia": "Odia",
-    "Assamese": "Assamese"
+    "Assamese": "Assamese",
+    "Own House": "Own House",
+    "Rented House": "Rented House",
+    "None / Others": "None / Others"
   },
   ta: {
     // Navigation
@@ -309,6 +316,7 @@ export const translations = {
     secHoroscope: "ஜாதக விவரங்கள்",
     secAbout: "உங்களைப் பற்றி",
     secPreferences: "வரன் விருப்பங்கள்",
+    secAssets: "சொத்து விவரங்கள்",
 
     // Profile Fields
     fieldName: "முழு பெயர்",
@@ -357,6 +365,9 @@ export const translations = {
     prefJob: "எதிர்பார்க்கும் வேலை / தொழில்",
     prefSalary: "எதிர்பார்க்கும் குறைந்தபட்ச வருமானம் (₹ p.a.)",
     prefLanguage: "எதிர்பார்க்கும் தாய்மொழி",
+    fieldHouse: "வீட்டு விவரம்",
+    fieldLand: "நில விவரம்",
+    fieldAssetValue: "மொத்த சொத்து மதிப்பு",
 
     // Search Page
     advancedSearch: "மேம்பட்ட வரன் தேடல்",
@@ -463,6 +474,9 @@ export const translations = {
     "Gujarati": "குஜராத்தி",
     "Punjabi": "பஞ்சாபி",
     "Odia": "ஒடியா",
-    "Assamese": "அசாமி"
+    "Assamese": "அசாமி",
+    "Own House": "சொந்த வீடு",
+    "Rented House": "வாடகை வீடு",
+    "None / Others": "இல்லை / மற்றவை"
   }
 };
