@@ -12,6 +12,7 @@ import AdminReports from "./pages/AdminReports";
 import AdminUsers from "./pages/AdminUsers";
 import AdminApprovals from "./pages/AdminApprovals";
 import AdminCreateProfile from "./pages/AdminCreateProfile";
+import AdminClientInterests from "./pages/AdminClientInterests";
 import Chat from "./pages/Chat";
 import Contact from "./pages/Contact";
 import Dashboard from "./pages/Dashboard";
@@ -62,6 +63,7 @@ export default function App() {
             <Route index element={<AdminDashboard />} />
             <Route path="users" element={<AdminUsers />} />
             <Route path="create-profile" element={<AdminCreateProfile />} />
+            <Route path="client-interests" element={<AdminClientInterests />} />
             <Route path="approvals" element={<AdminApprovals />} />
             <Route path="reports" element={<AdminReports />} />
             <Route path="analytics" element={<AdminAnalytics />} />

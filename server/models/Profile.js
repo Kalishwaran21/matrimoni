@@ -75,7 +75,8 @@ const profileSchema = new mongoose.Schema(
     boostUntil: Date,
     completionScore: { type: Number, default: 0 },
     isSubmitted: { type: Boolean, default: false },
-    isApproved: { type: Boolean, default: false }
+    isApproved: { type: Boolean, default: false },
+    createdByAdmin: { type: Boolean, default: false }
   },
   { timestamps: true }
 );

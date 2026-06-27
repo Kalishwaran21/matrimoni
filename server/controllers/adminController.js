@@ -4,6 +4,7 @@ import Profile from "../models/Profile.js";
 import Subscription from "../models/Subscription.js";
 import User from "../models/User.js";
 import cloudinary from "../config/cloudinary.js";
+import Chat from "../models/Chat.js";
 
 const completionFields = [
   "basic.name",
@@ -163,13 +164,94 @@ export const createClientProfile = async (req, res, next) => {
       user: user._id,
       photos,
       isSubmitted: true,
-      isApproved: true
+      isApproved: true,
+      createdByAdmin: true
     };
     finalProfileData.completionScore = calculateCompletion(finalProfileData);
 
     const profile = await Profile.create(finalProfileData);
 
     res.status(201).json({ message: "Client profile created successfully", userId: user._id });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getClientInterests = async (req, res, next) => {
+  try {
+    const adminCreatedProfiles = await Profile.find({ createdByAdmin: true }).select("user");
+    const clientUserIds = adminCreatedProfiles.map((p) => p.user);
+
+    const interests = await Interest.find({
+      $or: [
+        { from: { $in: clientUserIds } },
+        { to: { $in: clientUserIds } }
+      ]
+    })
+      .populate("from", "fullName email mobile gender isPremium")
+      .populate("to", "fullName email mobile gender isPremium")
+      .sort("-createdAt");
+
+    const allUserIds = [
+      ...interests.map((i) => i.from?._id),
+      ...interests.map((i) => i.to?._id)
+    ].filter(Boolean);
+
+    const profiles = await Profile.find({ user: { $in: allUserIds } });
+    const profileMap = new Map(profiles.map((p) => [String(p.user), p]));
+
+    const result = interests.map((item) => {
+      const itemObj = item.toObject();
+      itemObj.fromProfile = profileMap.get(String(item.from?._id)) || null;
+      itemObj.toProfile = profileMap.get(String(item.to?._id)) || null;
+      itemObj.isClientSender = clientUserIds.some((id) => String(id) === String(item.from?._id));
+      return itemObj;
+    });
+
+    res.json({ interests: result });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const respondClientInterest = async (req, res, next) => {
+  try {
+    const { interestId, status } = req.body;
+
+    const interest = await Interest.findById(interestId);
+    if (!interest) {
+      return res.status(404).json({ message: "Interest transaction not found" });
+    }
+
+    interest.status = status;
+    interest.respondedAt = new Date();
+    await interest.save();
+
+    if (status === "Accepted") {
+      const adminCreatedProfiles = await Profile.find({ createdByAdmin: true }).select("user");
+      const clientUserIds = adminCreatedProfiles.map((p) => p.user);
+      const isClientSender = clientUserIds.some((id) => String(id) === String(interest.from));
+      const targetUser = isClientSender ? interest.to : interest.from;
+      const clientUser = isClientSender ? interest.from : interest.to;
+
+      const clientRecord = await User.findById(clientUser);
+
+      await Notification.create({
+        user: targetUser,
+        type: "Interest Accepted",
+        title: "Interest accepted",
+        message: `${clientRecord ? clientRecord.fullName : "Client"} accepted your interest request`
+      });
+
+      const participants = [interest.from, interest.to].sort();
+      await Chat.findOneAndUpdate(
+        { participants: { $all: participants, $size: 2 } },
+        { $setOnInsert: { participants } },
+        { new: true, upsert: true }
+      );
+    }
+
+    res.json({ message: "Interest updated successfully", interest });
   } catch (error) {
     next(error);
   }

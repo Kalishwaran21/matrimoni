@@ -1,5 +1,5 @@
 import React from "react";
-import { BarChart3, Flag, LayoutDashboard, Users, ShieldCheck, UserPlus } from "lucide-react";
+import { BarChart3, Flag, LayoutDashboard, Users, ShieldCheck, UserPlus, HeartHandshake } from "lucide-react";
 import { NavLink, Outlet } from "react-router-dom";
 import Navbar from "../components/Navbar";
 
@@ -7,6 +7,7 @@ const adminLinks = [
   ["Dashboard", "/admin", LayoutDashboard],
   ["Users", "/admin/users", Users],
   ["Create Profile", "/admin/create-profile", UserPlus],
+  ["Client Interests", "/admin/client-interests", HeartHandshake],
   ["Approvals", "/admin/approvals", ShieldCheck],
   ["Reports", "/admin/reports", Flag],
   ["Analytics", "/admin/analytics", BarChart3]
