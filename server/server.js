@@ -21,11 +21,34 @@ import Chat from "./models/Chat.js";
 import Notification from "./models/Notification.js";
 import { canChat } from "./controllers/chatController.js";
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "http://127.0.0.1:5173",
+  "https://soulmatematrimoni.netlify.app"
+];
+
+if (process.env.CLIENT_URL) {
+  allowedOrigins.push(process.env.CLIENT_URL.replace(/\/$/, ""));
+}
+
+const checkOrigin = (origin, callback) => {
+  if (!origin) return callback(null, true);
+  const cleanOrigin = origin.replace(/\/$/, "");
+  const matches = allowedOrigins.some(
+    (allowed) => allowed.replace(/\/$/, "") === cleanOrigin
+  );
+  if (matches) {
+    return callback(null, true);
+  }
+  return callback(new Error("CORS policy violation"), false);
+};
+
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: checkOrigin,
     credentials: true
   }
 });
@@ -35,7 +58,7 @@ const onlineUsers = new Map();
 app.use(helmet());
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: checkOrigin,
     credentials: true
   })
 );
