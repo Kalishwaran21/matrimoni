@@ -3,6 +3,39 @@ import Notification from "../models/Notification.js";
 import Profile from "../models/Profile.js";
 import Subscription from "../models/Subscription.js";
 import User from "../models/User.js";
+import cloudinary from "../config/cloudinary.js";
+
+const completionFields = [
+  "basic.name",
+  "basic.age",
+  "basic.dob",
+  "basic.gender",
+  "basic.height",
+  "religion.religion",
+  "religion.caste",
+  "location.city",
+  "education.degree",
+  "career.jobTitle",
+  "family.fatherOccupation",
+  "horoscope.rasi"
+];
+
+const getByPath = (source, path) => path.split(".").reduce((obj, key) => obj?.[key], source);
+
+const calculateCompletion = (profile) => {
+  const filled = completionFields.filter((path) => Boolean(getByPath(profile, path))).length;
+  const photoScore = profile.photos?.length ? 1 : 0;
+  return Math.round(((filled + photoScore) / (completionFields.length + 1)) * 100);
+};
+
+const uploadBuffer = (file) =>
+  new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: "soulmate-matrimony/profiles", resource_type: "image" },
+      (error, result) => (error ? reject(error) : resolve(result))
+    );
+    stream.end(file.buffer);
+  });
 
 export const dashboard = async (req, res, next) => {
   try {
@@ -98,7 +131,11 @@ export const approveProfile = async (req, res, next) => {
 
 export const createClientProfile = async (req, res, next) => {
   try {
-    const { email, password, fullName, mobile, gender, profileData } = req.body;
+    const { email, password, fullName, mobile, gender } = req.body;
+    let profileData = req.body.profileData;
+    if (typeof profileData === "string") {
+      profileData = JSON.parse(profileData);
+    }
 
     const existing = await User.findOne({ email: email.toLowerCase() });
     if (existing) {
@@ -113,12 +150,24 @@ export const createClientProfile = async (req, res, next) => {
       gender
     });
 
-    const profile = await Profile.create({
-      user: user._id,
+    const photos = [];
+    if (req.files?.length) {
+      for (const file of req.files) {
+        const result = await uploadBuffer(file);
+        photos.push({ url: result.secure_url, publicId: result.public_id });
+      }
+    }
+
+    const finalProfileData = {
       ...profileData,
+      user: user._id,
+      photos,
       isSubmitted: true,
       isApproved: true
-    });
+    };
+    finalProfileData.completionScore = calculateCompletion(finalProfileData);
+
+    const profile = await Profile.create(finalProfileData);
 
     res.status(201).json({ message: "Client profile created successfully", userId: user._id });
   } catch (error) {
