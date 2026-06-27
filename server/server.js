@@ -152,10 +152,50 @@ io.on("connection", (socket) => {
   });
 });
 
+const ensureAdminUser = async () => {
+  const adminEmail = process.env.ADMIN_EMAIL || "admin@soulmate.com";
+  const adminPassword = process.env.ADMIN_PASSWORD || "Password123";
+  try {
+    const existingAdmin = await User.findOne({ email: adminEmail.toLowerCase() });
+    if (!existingAdmin) {
+      await User.create({
+        fullName: "Soulmate Admin",
+        email: adminEmail,
+        mobile: "9876543210",
+        password: adminPassword,
+        gender: "Other",
+        role: "admin",
+        isActive: true,
+        isPremium: true
+      });
+      console.log(`Auto-created default admin user: ${adminEmail}`);
+    } else {
+      let needsSave = false;
+      if (existingAdmin.role !== "admin") {
+        existingAdmin.role = "admin";
+        needsSave = true;
+      }
+      if (!existingAdmin.isActive) {
+        existingAdmin.isActive = true;
+        needsSave = true;
+      }
+      if (needsSave) {
+        await existingAdmin.save();
+        console.log(`Updated admin user constraints for: ${adminEmail}`);
+      }
+    }
+  } catch (err) {
+    console.error("Failed to ensure admin user presence:", err);
+  }
+};
+
 const port = process.env.PORT || 5000;
 
 connectDB()
-  .then(() => server.listen(port, () => console.log(`Server running on port ${port}`)))
+  .then(async () => {
+    await ensureAdminUser();
+    server.listen(port, () => console.log(`Server running on port ${port}`));
+  })
   .catch((error) => {
     console.error(error);
     process.exit(1);
