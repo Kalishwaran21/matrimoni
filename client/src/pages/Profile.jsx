@@ -263,7 +263,7 @@ export default function Profile() {
                 <button
                   type="button"
                   onClick={() => removePhoto(i, false)}
-                  className="absolute right-2 top-2 rounded-xl bg-slate-900/60 p-1.5 text-white hover:bg-slate-900 transition"
+                  className="absolute right-2 top-2 rounded-xl bg-slate-950/65 p-1.5 text-white hover:bg-slate-900 transition"
                 >
                   <X size={15} />
                 </button>
@@ -279,7 +279,7 @@ export default function Profile() {
                 <button
                   type="button"
                   onClick={() => removePhoto(i, true, p.publicId)}
-                  className="absolute right-2 top-2 rounded-xl bg-slate-900/60 p-1.5 text-white hover:bg-slate-900 transition"
+                  className="absolute right-2 top-2 rounded-xl bg-slate-950/65 p-1.5 text-white hover:bg-slate-900 transition"
                 >
                   <X size={15} />
                 </button>
@@ -303,7 +303,7 @@ export default function Profile() {
               disabled={!isEditMode}
               value={form.basic?.name || ""}
               onChange={(e) => update("basic", "name", e.target.value)}
-              placeholder="E.g., Priya Sharma"
+              placeholder={language === "en" ? "E.g., Priya Sharma" : "உதாரணம்: பிரியா சர்மா"}
             />
           </label>
           <label className="flex flex-col gap-1.5">
@@ -317,7 +317,7 @@ export default function Profile() {
               disabled={!isEditMode}
               value={form.basic?.age || ""}
               onChange={(e) => update("basic", "age", e.target.value)}
-              placeholder="E.g., 25"
+              placeholder={language === "en" ? "E.g., 25" : "உதாரணம்: 25"}
             />
           </label>
           <div className="flex flex-col gap-1.5">
@@ -407,7 +407,7 @@ export default function Profile() {
               disabled={!isEditMode}
               value={form.basic?.height || ""}
               onChange={(e) => update("basic", "height", e.target.value)}
-              placeholder="E.g., 165"
+              placeholder={language === "en" ? "E.g., 165" : "உதாரணம்: 165"}
             />
           </label>
           <label className="flex flex-col gap-1.5">
@@ -420,7 +420,7 @@ export default function Profile() {
               disabled={!isEditMode}
               value={form.basic?.weight || ""}
               onChange={(e) => update("basic", "weight", e.target.value)}
-              placeholder="E.g., 60"
+              placeholder={language === "en" ? "E.g., 60" : "உதாரணம்: 60"}
             />
           </label>
           <label className="flex flex-col gap-1.5">
@@ -499,7 +499,7 @@ export default function Profile() {
               disabled={!isEditMode}
               value={form.religion?.subCaste || ""}
               onChange={(e) => update("religion", "subCaste", e.target.value)}
-              placeholder="E.g., Iyer / Sect"
+              placeholder={language === "en" ? "E.g., Iyer / Sect" : "உதாரணம்: ஐயர் / பிரிவு"}
             />
           </label>
           <label className="flex flex-col gap-1.5">
@@ -564,7 +564,7 @@ export default function Profile() {
               disabled={!isEditMode}
               value={form.location?.city || ""}
               onChange={(e) => update("location", "city", e.target.value)}
-              placeholder="E.g., Chennai"
+              placeholder={language === "en" ? "E.g., Chennai" : "உதாரணம்: சென்னை"}
             />
           </label>
         </div>
@@ -598,7 +598,7 @@ export default function Profile() {
               disabled={!isEditMode}
               value={form.education?.college || ""}
               onChange={(e) => update("education", "college", e.target.value)}
-              placeholder="E.g., Anna University"
+              placeholder={language === "en" ? "E.g., Anna University" : "உதாரணம்: அண்ணா பல்கலைக்கழகம்"}
             />
           </label>
         </div>
@@ -633,7 +633,7 @@ export default function Profile() {
               disabled={!isEditMode}
               value={form.career?.jobTitle || ""}
               onChange={(e) => update("career", "jobTitle", e.target.value)}
-              placeholder="E.g., Senior iOS Developer"
+              placeholder={language === "en" ? "E.g., Senior iOS Developer" : "உதாரணம்: சீனியர் ஐஓஎஸ் டெவலப்பர்"}
             />
           </label>
           <label className="flex flex-col gap-1.5">
@@ -643,7 +643,7 @@ export default function Profile() {
               disabled={!isEditMode}
               value={form.career?.company || ""}
               onChange={(e) => update("career", "company", e.target.value)}
-              placeholder="E.g., Infosys Ltd"
+              placeholder={language === "en" ? "E.g., Infosys Ltd" : "உதாரணம்: இன்போசிஸ் நிறுவனம்"}
             />
           </label>
           <label className="flex flex-col gap-1.5">
@@ -654,7 +654,7 @@ export default function Profile() {
               disabled={!isEditMode}
               value={form.career?.salary || ""}
               onChange={(e) => update("career", "salary", e.target.value)}
-              placeholder="E.g., 850000"
+              placeholder={language === "en" ? "E.g., 850000" : "உதாரணம்: 850000"}
             />
           </label>
         </div>
@@ -720,7 +720,7 @@ export default function Profile() {
               disabled={!isEditMode}
               value={form.family?.fatherOccupation || ""}
               onChange={(e) => update("family", "fatherOccupation", e.target.value)}
-              placeholder="E.g., Retired Govt Officer"
+              placeholder={language === "en" ? "E.g., Retired Govt Officer" : "உதாரணம்: ஓய்வு பெற்ற அரசு அதிகாரி"}
             />
           </label>
           <label className="flex flex-col gap-1.5">
@@ -730,7 +730,7 @@ export default function Profile() {
               disabled={!isEditMode}
               value={form.family?.motherOccupation || ""}
               onChange={(e) => update("family", "motherOccupation", e.target.value)}
-              placeholder="E.g., Homemaker"
+              placeholder={language === "en" ? "E.g., Homemaker" : "உதாரணம்: இல்லத்தரசி"}
             />
           </label>
           <label className="flex flex-col gap-1.5">
@@ -743,13 +743,13 @@ export default function Profile() {
               disabled={!isEditMode}
               value={form.family?.siblings || ""}
               onChange={(e) => update("family", "siblings", e.target.value)}
-              placeholder="E.g., 2"
+              placeholder={language === "en" ? "E.g., 2" : "உதாரணம்: 2"}
             />
           </label>
         </div>
       </section>
 
-      {/* ── SECTION 9: Horoscope Details ── */}
+      {/* ── SECTION 8: Horoscope Details ── */}
       <section className="panel">
         <h2 className="mb-5 text-xl font-black text-maroon-800 flex items-center gap-2">
           <span>✨</span> {t("secHoroscope")}
@@ -802,13 +802,13 @@ export default function Profile() {
               disabled={!isEditMode}
               value={form.religion?.gothram || ""}
               onChange={(e) => update("religion", "gothram", e.target.value)}
-              placeholder="E.g., Bharadwaja"
+              placeholder={language === "en" ? "E.g., Bharadwaja" : "உதாரணம்: பரத்வாஜ"}
             />
           </label>
         </div>
       </section>
 
-      {/* ── SECTION 10: About Yourself ── */}
+      {/* ── SECTION 9: About Yourself ── */}
       <section className="panel">
         <h2 className="mb-5 text-xl font-black text-maroon-800 flex items-center gap-2">
           <span>💬</span> {t("secAbout")}
@@ -825,7 +825,7 @@ export default function Profile() {
         </div>
       </section>
 
-      {/* ── SECTION 11: Partner Preferences ── */}
+      {/* ── SECTION 10: Partner Preferences ── */}
       <section className="panel">
         <h2 className="mb-5 text-xl font-black text-maroon-800 flex items-center gap-2">
           <span>🎯</span> {t("secPreferences")}
@@ -842,7 +842,7 @@ export default function Profile() {
               disabled={!isEditMode}
               value={form.preferences?.ageMin || ""}
               onChange={(e) => update("preferences", "ageMin", e.target.value)}
-              placeholder="E.g., 21"
+              placeholder={language === "en" ? "E.g., 21" : "உதாரணம்: 21"}
             />
           </label>
 
@@ -857,7 +857,7 @@ export default function Profile() {
               disabled={!isEditMode}
               value={form.preferences?.ageMax || ""}
               onChange={(e) => update("preferences", "ageMax", e.target.value)}
-              placeholder="E.g., 30"
+              placeholder={language === "en" ? "E.g., 30" : "உதாரணம்: 30"}
             />
           </label>
 
@@ -918,7 +918,7 @@ export default function Profile() {
               disabled={!isEditMode}
               value={form.preferences?.salary || ""}
               onChange={(e) => update("preferences", "salary", e.target.value)}
-              placeholder="E.g., 600000"
+              placeholder={language === "en" ? "E.g., 600000" : "உதாரணம்: 600000"}
             />
           </label>
 
