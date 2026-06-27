@@ -1,33 +1,28 @@
 import React from "react";
 import { Heart, Mail, MapPin, Phone } from "lucide-react";
 import { Link } from "react-router-dom";
-
-const footerLinks = {
-  Company: [
-    ["About Us", "/about"],
-    ["Pricing", "/pricing"],
-    ["Contact", "/contact"],
-    ["Success Stories", "/"]
-  ],
-  Members: [
-    ["Register Free", "/register"],
-    ["Login", "/login"],
-    ["Search Matches", "/matches"],
-    ["Upgrade Plan", "/subscription"]
-  ],
-  Help: [
-    ["Privacy Policy", "#"],
-    ["Terms of Service", "#"],
-    ["Cookie Policy", "#"],
-    ["FAQ", "#"]
-  ]
-};
+import { useLanguage } from "../context/LanguageContext";
 
 export default function Footer() {
+  const { t } = useLanguage();
+
+  const footerLinks = {
+    [t("about")]: [
+      [t("about"), "/about"],
+      [t("pricing"), "/pricing"],
+      [t("contact"), "/contact"]
+    ],
+    [t("matches")]: [
+      [t("register"), "/register"],
+      [t("login"), "/login"],
+      [t("matches"), "/matches"]
+    ]
+  };
+
   return (
     <footer className="bg-slate-950 text-slate-300">
       <div className="container-pad py-14">
-        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr]">
+        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr]">
           {/* Brand */}
           <div>
             <Link to="/" className="flex items-center gap-2.5 text-xl font-black text-white">
@@ -37,7 +32,7 @@ export default function Footer() {
               Soulmate Matrimony
             </Link>
             <p className="mt-4 max-w-xs text-sm leading-7 text-slate-400">
-              India's most trusted matrimony platform. Connecting genuine profiles for meaningful, lifelong partnerships.
+              {t("whyUsDesc")}
             </p>
             <div className="mt-6 grid gap-2">
               <a href="mailto:hello@soulmate.in" className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors">
@@ -74,7 +69,7 @@ export default function Footer() {
 
         {/* Divider + copyright */}
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-slate-800 pt-8 text-xs text-slate-500 sm:flex-row">
-          <p>© {new Date().getFullYear()} Soulmate Matrimony. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Soulmate Matrimony. {t("about") === "About" ? "All rights reserved." : "அனைத்து உரிமைகளும் பாதுகாக்கப்பட்டவை."}</p>
           <p className="flex items-center gap-1.5">
             Made with <Heart size={12} fill="currentColor" className="text-pink-500" /> in India
           </p>

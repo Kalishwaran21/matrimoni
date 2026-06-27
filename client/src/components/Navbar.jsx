@@ -2,28 +2,35 @@ import React, { useState } from "react";
 import { ArrowRight, Heart, HeartHandshake, Menu, Search, ShieldCheck, Sparkles, Star, UsersRound, X, LogOut, UserRound, Bell } from "lucide-react";
 import { Link, NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-
-const publicLinks = [
-  ["Home", "/"],
-  ["About", "/about"],
-  ["Pricing", "/pricing"],
-  ["Contact", "/contact"]
-];
-
-const authedLinks = [
-  ["Matches", "/matches"],
-  ["Interests", "/interests"],
-  ["Chat", "/chat"],
-  ["Plans", "/subscription"],
-  ["Profile", "/profile"]
-];
+import { useLanguage } from "../context/LanguageContext";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const { t, language, setLanguage } = useLanguage();
   const [open, setOpen] = useState(false);
+
+  const toggleLanguage = () => {
+    setLanguage(language === "en" ? "ta" : "en");
+  };
+
+  const publicLinks = [
+    [t("home"), "/"],
+    [t("about"), "/about"],
+    [t("pricing"), "/pricing"],
+    [t("contact"), "/contact"]
+  ];
+
+  const authedLinks = [
+    [t("matches"), "/matches"],
+    [t("interests"), "/interests"],
+    [t("chat"), "/chat"],
+    [t("plans"), "/subscription"],
+    [t("profile"), "/profile"]
+  ];
+
   const links = user
     ? (user.role !== "admin" && !user.isProfileSubmitted
-        ? [["Profile", "/profile"]]
+        ? [[t("profile"), "/profile"]]
         : authedLinks)
     : publicLinks;
 
@@ -39,14 +46,23 @@ export default function Navbar() {
           <span className="block sm:hidden">Soulmate</span>
         </Link>
 
-        {/* Mobile hamburger */}
-        <button
-          className="rounded-xl p-2 text-maroon-700 hover:bg-maroon-50 md:hidden transition-colors"
-          onClick={() => setOpen((v) => !v)}
-          aria-label="Toggle menu"
-        >
-          {open ? <X /> : <Menu />}
-        </button>
+        {/* Mobile menu trigger + Switcher wrapper */}
+        <div className="flex items-center gap-2 md:hidden">
+          <button
+            onClick={toggleLanguage}
+            className="inline-flex items-center gap-1 rounded-xl border border-rose-100 bg-rose-50/50 hover:bg-rose-50 px-3 py-1.5 text-xs font-bold text-maroon-700 transition"
+            title="Switch Language / மொழியை மாற்றவும்"
+          >
+            🌐 {language === "en" ? "தமிழ்" : "EN"}
+          </button>
+          <button
+            className="rounded-xl p-2 text-maroon-700 hover:bg-maroon-50 transition-colors"
+            onClick={() => setOpen((v) => !v)}
+            aria-label="Toggle menu"
+          >
+            {open ? <X /> : <Menu />}
+          </button>
+        </div>
 
         {/* Desktop nav links */}
         <div className="hidden items-center gap-1 md:flex">
@@ -69,19 +85,28 @@ export default function Navbar() {
 
         {/* Desktop CTA */}
         <div className="hidden items-center gap-2 md:flex">
+          {/* Language Switcher */}
+          <button
+            onClick={toggleLanguage}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-rose-100 bg-rose-50/80 hover:bg-rose-100 px-3 py-2 text-xs font-black text-maroon-700 transition mr-1"
+            title="Switch Language / மொழியை மாற்றவும்"
+          >
+            🌐 {language === "en" ? "தமிழ்" : "English"}
+          </button>
+
           {user ? (
             <>
               <Link
                 to="/profile"
                 className="btn-ghost !px-3 !py-2"
-                title="My Profile"
+                title={t("profile")}
               >
                 <UserRound size={17} />
               </Link>
               <button
                 onClick={logout}
                 className="btn-secondary !px-3 !py-2"
-                title="Logout"
+                title={t("logout")}
               >
                 <LogOut size={17} />
               </button>
@@ -89,10 +114,10 @@ export default function Navbar() {
           ) : (
             <>
               <Link to="/login" className="btn-secondary !px-4 !py-2 text-sm">
-                Login
+                {t("login")}
               </Link>
               <Link to="/register" className="btn-primary !px-4 !py-2 text-sm">
-                <Search size={15} /> Register Free
+                <Search size={15} /> {t("register")}
               </Link>
             </>
           )}
@@ -121,15 +146,15 @@ export default function Navbar() {
           <div className="mt-4 grid gap-2">
             {user ? (
               <button onClick={logout} className="btn-secondary">
-                <LogOut size={16} /> Logout
+                <LogOut size={16} /> {t("logout")}
               </button>
             ) : (
               <>
                 <Link to="/login" onClick={() => setOpen(false)} className="btn-secondary">
-                  Login
+                  {t("login")}
                 </Link>
                 <Link to="/register" onClick={() => setOpen(false)} className="btn-primary">
-                  Register Free
+                  {t("register")}
                 </Link>
               </>
             )}

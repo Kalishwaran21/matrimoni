@@ -4,23 +4,25 @@ import MatchCard from "../components/MatchCard";
 import { CardSkeleton } from "../components/Spinner";
 import { toast } from "../components/Toast";
 import { api } from "../services/api";
-
-const filterConfig = [
-  { key: "ageMin", label: "Min Age", type: "number", placeholder: "18" },
-  { key: "ageMax", label: "Max Age", type: "number", placeholder: "45" },
-  { key: "religion", label: "Religion", type: "text", placeholder: "e.g. Hindu" },
-  { key: "caste", label: "Caste", type: "text", placeholder: "e.g. Brahmin" },
-  { key: "city", label: "City", type: "text", placeholder: "e.g. Chennai" },
-  { key: "education", label: "Education", type: "text", placeholder: "e.g. B.Tech" },
-  { key: "job", label: "Job Title", type: "text", placeholder: "e.g. Engineer" },
-  { key: "salaryMin", label: "Min Salary (₹)", type: "number", placeholder: "500000" }
-];
+import { useLanguage } from "../context/LanguageContext";
 
 export default function SearchMatches() {
+  const { t, language } = useLanguage();
   const [filters, setFilters] = useState({});
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filtersOpen, setFiltersOpen] = useState(true);
+
+  const filterConfig = [
+    { key: "ageMin", label: t("prefMinAge"), type: "number", placeholder: "18" },
+    { key: "ageMax", label: t("prefMaxAge"), type: "number", placeholder: "45" },
+    { key: "religion", label: t("fieldReligion"), type: "text", placeholder: "e.g. Hindu" },
+    { key: "caste", label: t("fieldCaste"), type: "text", placeholder: "e.g. Nadar" },
+    { key: "city", label: t("fieldCity"), type: "text", placeholder: "e.g. Chennai" },
+    { key: "education", label: t("fieldEducation"), type: "text", placeholder: "e.g. B.Tech" },
+    { key: "job", label: t("fieldProfession"), type: "text", placeholder: "e.g. Developer" },
+    { key: "salaryMin", label: t("prefSalary"), type: "number", placeholder: "500000" }
+  ];
 
   const search = async () => {
     setLoading(true);
@@ -31,7 +33,7 @@ export default function SearchMatches() {
       const { data } = await api.get("/search", { params: clean });
       setResults(data.results || []);
     } catch {
-      toast.error("Search failed. Please try again.");
+      toast.error(language === "en" ? "Search failed. Please try again." : "தேடல் தோல்வியடைந்தது. மீண்டும் முயற்சிக்கவும்.");
     } finally {
       setLoading(false);
     }
@@ -42,9 +44,9 @@ export default function SearchMatches() {
   const sendInterest = async (to) => {
     try {
       await api.post("/interest/send", { to });
-      toast.success("Interest sent successfully!");
+      toast.success(language === "en" ? "Interest sent successfully!" : "விருப்பம் வெற்றிகரமாக அனுப்பப்பட்டது!");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Unable to send interest.");
+      toast.error(err.response?.data?.message || (language === "en" ? "Unable to send interest." : "விருப்பம் அனுப்ப முடியவில்லை."));
     }
   };
 
@@ -57,10 +59,10 @@ export default function SearchMatches() {
     <div className="grid gap-6 animate-fade-up">
       {/* Header */}
       <div>
-        <p className="label">Match search</p>
-        <h1 className="mt-2 text-3xl font-black text-slate-950">Advanced Partner Search</h1>
+        <p className="label">{t("matches")}</p>
+        <h1 className="mt-2 text-3xl font-black text-slate-950">{t("advancedSearch")}</h1>
         <p className="mt-1 text-sm text-slate-500">
-          {loading ? "Searching..." : `${results.length} profiles found`}
+          {loading ? (language === "en" ? "Searching..." : "தேடப்படுகிறது...") : `${results.length} ${t("profilesFound")}`}
         </p>
       </div>
 
@@ -73,7 +75,7 @@ export default function SearchMatches() {
         >
           <div className="flex items-center gap-2 font-black text-maroon-800">
             <SlidersHorizontal size={18} />
-            Filter Matches
+            {t("filterMatches")}
           </div>
           {filtersOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
         </button>
@@ -94,10 +96,10 @@ export default function SearchMatches() {
             ))}
             <div className="sm:col-span-2 lg:col-span-4 flex gap-3 pt-1">
               <button id="search-submit" className="btn-primary" onClick={search}>
-                <Search size={17} /> Search
+                <Search size={17} /> {t("search")}
               </button>
               <button type="button" className="btn-secondary" onClick={reset}>
-                Clear Filters
+                {t("clearFilters")}
               </button>
             </div>
           </div>
@@ -120,8 +122,8 @@ export default function SearchMatches() {
       ) : (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-rose-100 bg-white py-20 text-center">
           <Search size={40} className="text-maroon-200 mb-4" />
-          <p className="font-black text-slate-950">No matches found</p>
-          <p className="mt-2 text-sm text-slate-400">Try adjusting your filters to find more profiles.</p>
+          <p className="font-black text-slate-950">{t("noMatches")}</p>
+          <p className="mt-2 text-sm text-slate-400">{t("adjustFilters")}</p>
         </div>
       )}
     </div>

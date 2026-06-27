@@ -2,11 +2,13 @@ import React, { useState } from "react";
 import { Eye, EyeOff, LogIn } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
 import { toast } from "../components/Toast";
 import Spinner from "../components/Spinner";
 
 export default function Login() {
   const { login, loading } = useAuth();
+  const { t, language } = useLanguage();
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: "", password: "" });
   const [showPw, setShowPw] = useState(false);
@@ -15,10 +17,10 @@ export default function Login() {
     e.preventDefault();
     try {
       const user = await login(form);
-      toast.success("Welcome back!");
+      toast.success(language === "en" ? "Welcome back!" : "மீண்டும் உங்களை வரவேற்கிறோம்!");
       navigate(user.role === "admin" ? "/admin" : "/matches");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Login failed. Please check your credentials.");
+      toast.error(err.response?.data?.message || (language === "en" ? "Login failed. Please check your credentials." : "உள்நுழைவு தோல்வி. உங்கள் மின்னஞ்சல் அல்லது கடவுச்சொல்லை சரிபார்க்கவும்."));
     }
   };
 
@@ -29,18 +31,18 @@ export default function Login() {
           onSubmit={submit}
           className="rounded-2xl border border-rose-100 bg-white p-8 shadow-soft"
         >
-          <p className="label">Welcome back</p>
-          <h1 className="mt-2 text-3xl font-black text-slate-950">Sign in to Soulmate</h1>
+          <p className="label">{t("welcomeBack")}</p>
+          <h1 className="mt-2 text-3xl font-black text-slate-950">{t("signInTo")}</h1>
           <p className="mt-2 text-sm text-slate-500">
-            Don't have an account?{" "}
+            {t("noAccount")}{" "}
             <Link to="/register" className="font-semibold text-maroon-700 hover:underline">
-              Register free
+              {t("registerFreeLink")}
             </Link>
           </p>
 
           <div className="mt-8 grid gap-4">
             <label>
-              <span className="label">Email</span>
+              <span className="label">{t("email")}</span>
               <input
                 id="login-email"
                 className="field mt-2"
@@ -54,13 +56,13 @@ export default function Login() {
             </label>
 
             <label>
-              <span className="label">Password</span>
+              <span className="label">{t("password")}</span>
               <div className="relative mt-2">
                 <input
                   id="login-password"
                   className="field pr-12"
                   type={showPw ? "text" : "password"}
-                  placeholder="Your password"
+                  placeholder={language === "en" ? "Your password" : "உங்களது கடவுச்சொல்"}
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
                   required
@@ -78,18 +80,18 @@ export default function Login() {
 
             <div className="flex justify-end">
               <Link to="/forgot-password" className="text-sm font-semibold text-maroon-700 hover:underline">
-                Forgot password?
+                {t("forgotPassword")}
               </Link>
             </div>
 
             <button id="login-submit" className="btn-primary" disabled={loading}>
               {loading ? (
                 <>
-                  <Spinner size="sm" className="border-white/40 border-t-white" /> Signing in...
+                  <Spinner size="sm" className="border-white/40 border-t-white" /> {t("signingIn")}
                 </>
               ) : (
                 <>
-                  <LogIn size={17} /> Sign In
+                  <LogIn size={17} /> {t("signInBtn")}
                 </>
               )}
             </button>

@@ -4,38 +4,43 @@ import { Link } from "react-router-dom";
 import PlanCard from "../components/PlanCard";
 import StatCard from "../components/StatCard";
 import { heroImage, plans, testimonials } from "../utils/constants";
-
-const stats = [
-  { label: "Verified Profiles", value: "32K+", icon: ShieldCheck, color: "maroon" },
-  { label: "Successful Matches", value: "8.5K", icon: HeartHandshake, color: "emerald" },
-  { label: "Active Members", value: "18K", icon: UsersRound, color: "amber" },
-  { label: "Cities Covered", value: "140+", icon: Sparkles, color: "blue" }
-];
-
-const whyUs = [
-  {
-    icon: ShieldCheck,
-    title: "Verified Profiles",
-    desc: "Every profile is manually reviewed to ensure authenticity and safety."
-  },
-  {
-    icon: Star,
-    title: "Smart Matching",
-    desc: "Our compatibility score helps you find partners that truly align."
-  },
-  {
-    icon: Lock,
-    title: "Privacy First",
-    desc: "Your contact details are protected until you both agree to connect."
-  },
-  {
-    icon: HeartHandshake,
-    title: "Interest System",
-    desc: "Send and accept interests before starting a conversation — always respectful."
-  }
-];
+import { useLanguage } from "../context/LanguageContext";
 
 export default function Home() {
+  const { t, language } = useLanguage();
+
+  const stats = [
+    { label: t("verifiedProfiles"), value: "32K+", icon: ShieldCheck, color: "maroon" },
+    { label: t("interestsTitle") + " " + (language === "en" ? "Matches" : "வரன்கள்"), value: "8.5K", icon: HeartHandshake, color: "emerald" },
+    { label: t("chat") + " " + (language === "en" ? "Members" : "உறுப்பினர்கள்"), value: "18K", icon: UsersRound, color: "amber" },
+    { label: t("home") === "Home" ? "Cities Covered" : "நகரங்கள்", value: "140+", icon: Sparkles, color: "blue" }
+  ];
+
+  const whyUs = [
+    {
+      icon: ShieldCheck,
+      title: t("verifiedProfiles"),
+      desc: t("verifiedDesc")
+    },
+    {
+      icon: Star,
+      title: t("home") === "Home" ? "Smart Matching" : "மேம்பட்ட வரன் பொருத்தம்",
+      desc: t("smartMatchingDesc")
+    },
+    {
+      icon: Lock,
+      title: t("home") === "Home" ? "Privacy First" : "முழு பாதுகாப்பு",
+      desc: t("secureDesc")
+    },
+    {
+      icon: HeartHandshake,
+      title: t("home") === "Home" ? "Interest System" : "விருப்பம் தெரிவிக்கும் முறை",
+      desc: t("home") === "Home" 
+        ? "Send and accept interests before starting a conversation — always respectful."
+        : "அரட்டையைத் தொடங்குவதற்கு முன் வரன்களின் விருப்பத்தைப் பெறலாம்."
+    }
+  ];
+
   return (
     <>
       {/* ── Hero ────────────────────────────────────── */}
@@ -52,30 +57,29 @@ export default function Home() {
           <div className="max-w-2xl animate-fade-up text-white">
             <p className="mb-5 inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-semibold backdrop-blur">
               <Sparkles size={15} className="text-pink-300" />
-              Trusted profiles · Meaningful matches
+              {t("home") === "Home" ? "Trusted profiles · Meaningful matches" : "நம்பகமான வரன்கள் · பொருத்தமான இணைகள்"}
             </p>
 
             <h1 className="text-5xl font-black leading-[1.1] sm:text-6xl lg:text-7xl">
-              Find Your
+              {t("home") === "Home" ? "Find Your" : "கண்டறியுங்கள்"}
               <br />
               <span className="bg-gradient-to-r from-rose-300 to-pink-200 bg-clip-text text-transparent">
-                Perfect Life
+                {t("home") === "Home" ? "Perfect Life" : "சரியான வாழ்க்கை"}
               </span>
               <br />
-              Partner
+              {t("home") === "Home" ? "Partner" : "துணையை"}
             </h1>
 
             <p className="mt-6 max-w-lg text-lg leading-8 text-rose-100">
-              Join Soulmate Matrimony and connect with genuine profiles to find your perfect match. Over{" "}
-              <strong className="text-white">32,000+ verified members</strong> are waiting.
+              {t("heroSubtitle")}
             </p>
 
             <div className="mt-10 flex flex-wrap gap-3">
               <Link to="/register" id="hero-register" className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:from-amber-500 hover:to-orange-600 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 focus:outline-none">
-                Register Free <ArrowRight size={18} />
+                {t("registerFree")} <ArrowRight size={18} />
               </Link>
               <Link to="/matches" className="rounded-xl border border-white/30 bg-white/10 px-5 py-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20">
-                Explore Matches
+                {t("exploreMatches")}
               </Link>
             </div>
           </div>
@@ -86,21 +90,23 @@ export default function Home() {
       <section className="bg-white py-10">
         <div className="container-pad">
           <div className="rounded-2xl border border-rose-100 bg-white p-6 shadow-soft">
-            <p className="label mb-4 text-center">Quick Partner Search</p>
+            <p className="label mb-4 text-center">
+              {t("home") === "Home" ? "Quick Partner Search" : "விரைவான வரன் தேடல்"}
+            </p>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {["Age", "Religion", "City", "Education"].map((label) => (
+              {[(t("home") === "Home" ? "Age" : "வயது"), (t("home") === "Home" ? "Religion" : "மதம்"), (t("home") === "Home" ? "City" : "நகரம்"), (t("home") === "Home" ? "Education" : "கல்வி")].map((label) => (
                 <label key={label}>
                   <span className="label mb-2 block">{label}</span>
                   <input
                     className="field"
-                    placeholder={`Preferred ${label.toLowerCase()}`}
+                    placeholder={t("home") === "Home" ? `Preferred ${label.toLowerCase()}` : `விரும்பிய ${label}`}
                   />
                 </label>
               ))}
             </div>
             <div className="mt-5 flex justify-center">
               <Link to="/matches" className="btn-primary gap-2">
-                <Search size={17} /> Search Matches
+                <Search size={17} /> {t("search")}
               </Link>
             </div>
           </div>
@@ -120,14 +126,12 @@ export default function Home() {
       <section className="bg-white py-20">
         <div className="container-pad">
           <div className="mb-12 text-center">
-            <p className="label">Why choose us</p>
+            <p className="label">{t("whyChooseUs")}</p>
             <h2 className="mt-3 section-title">
-              Elegant discovery with{" "}
-              <span className="text-maroon-700">serious compatibility</span>
+              {t("seriousComp")}
             </h2>
             <p className="section-subtitle mx-auto max-w-xl">
-              Soulmate blends detailed profiles, privacy-first communication, curated
-              partner preferences, and admin moderation for families and individuals.
+              {t("whyUsDesc")}
             </p>
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -152,11 +156,13 @@ export default function Home() {
         <div className="container-pad">
           <div className="mb-12 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
             <div>
-              <p className="label">Membership plans</p>
-              <h2 className="mt-2 section-title">Choose how you connect</h2>
+              <p className="label">{t("home") === "Home" ? "Membership plans" : "உறுப்பினர் திட்டங்கள்"}</p>
+              <h2 className="mt-2 section-title">
+                {t("home") === "Home" ? "Choose how you connect" : "உங்களுக்கான சரியான திட்டத்தை தேர்வு செய்யவும்"}
+              </h2>
             </div>
             <Link to="/pricing" className="btn-secondary shrink-0">
-              View All Plans
+              {t("home") === "Home" ? "View All Plans" : "அனைத்து திட்டங்களையும் காண்க"}
             </Link>
           </div>
           <div className="grid gap-6 md:grid-cols-2 max-w-3xl mx-auto">
@@ -171,10 +177,12 @@ export default function Home() {
       <section className="bg-white py-20">
         <div className="container-pad">
           <div className="mb-12 text-center">
-            <p className="label">Success stories</p>
+            <p className="label">{t("home") === "Home" ? "Success stories" : "வெற்றிக் கதைகள்"}</p>
             <h2 className="mt-2 section-title">
-              Stories that began with a{" "}
-              <span className="text-maroon-700">thoughtful profile</span>
+              {t("home") === "Home" ? "Stories that began with a" : "சுயவிவரத்தில் தொடங்கிய"}{" "}
+              <span className="text-maroon-700">
+                {t("home") === "Home" ? "thoughtful profile" : "வாழ்க்கை பயணங்கள்"}
+              </span>
             </h2>
           </div>
           <div className="grid gap-6 md:grid-cols-3">
@@ -208,17 +216,17 @@ export default function Home() {
       <section className="bg-gradient-to-r from-maroon-700 via-maroon-800 to-maroon-900 py-16">
         <div className="container-pad text-center">
           <h2 className="text-3xl font-black text-white sm:text-4xl">
-            Ready to find your life partner?
+            {t("home") === "Home" ? "Ready to find your life partner?" : "உங்கள் வாழ்க்கை துணையை கண்டறிய தயாரா?"}
           </h2>
           <p className="mt-4 text-maroon-200">
-            Join thousands of verified members across India.
+            {t("home") === "Home" ? "Join thousands of verified members across India." : "இந்தியா முழுவதும் உள்ள ஆயிரக்கணக்கான சரிபார்க்கப்பட்ட உறுப்பினர்களுடன் இணையுங்கள்."}
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
             <Link to="/register" className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 px-8 py-3 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:from-amber-500 hover:to-orange-600 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 focus:outline-none">
-              Register Free <ArrowRight className="inline ml-1" size={16} />
+              {t("registerFree")} <ArrowRight className="inline ml-1" size={16} />
             </Link>
             <Link to="/about" className="rounded-xl border border-white/30 px-8 py-3 text-sm font-semibold text-white transition hover:bg-white/10">
-              Learn More
+              {t("home") === "Home" ? "Learn More" : "மேலும் அறிய"}
             </Link>
           </div>
         </div>

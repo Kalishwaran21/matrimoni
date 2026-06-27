@@ -1,8 +1,10 @@
 import React from "react";
 import { Briefcase, GraduationCap, Heart, HeartHandshake, MapPin, Star, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function MatchCard({ item, onInterest }) {
+  const { t, language } = useLanguage();
   const profile = item.profile || item;
   const user = profile.user || {};
   const photo = profile.photos?.[0]?.url;
@@ -34,13 +36,13 @@ export default function MatchCard({ item, onInterest }) {
         {/* Match % overlay badge */}
         <div className={`absolute right-3 top-3 flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-black shadow ${matchColor}`}>
           <Star size={11} fill="currentColor" />
-          {match}% Match
+          {match}% {language === "en" ? "Match" : "பொருத்தம்"}
         </div>
 
         {/* Premium badge */}
         {user.isPremium && (
           <div className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-400 to-orange-400 px-2.5 py-1 text-xs font-black text-white shadow">
-            ✦ Premium
+            ✦ {language === "en" ? "Premium" : "பிரீமியம்"}
           </div>
         )}
       </div>
@@ -57,7 +59,7 @@ export default function MatchCard({ item, onInterest }) {
             )}
           </h3>
           <p className="text-sm text-slate-500">
-            {profile.basic?.age ? `${profile.basic.age} yrs` : "--"}{profile.basic?.height ? ` · ${profile.basic.height}` : ""}
+            {profile.basic?.age ? `${profile.basic.age} ${language === "en" ? "yrs" : "வயது"}` : "--"}{profile.basic?.height ? ` · ${profile.basic.height} cm` : ""}
           </p>
         </div>
 
@@ -72,29 +74,29 @@ export default function MatchCard({ item, onInterest }) {
         <div className="grid gap-1.5 text-sm text-slate-600">
           <span className="flex items-center gap-2">
             <MapPin size={14} className="text-maroon-400 shrink-0" />
-            {profile.location?.city || "Location pending"}
+            {profile.location?.city || (language === "en" ? "Location pending" : "இருப்பிடம் குறிப்பிடப்படவில்லை")}
           </span>
           <span className="flex items-center gap-2">
             <GraduationCap size={14} className="text-maroon-400 shrink-0" />
-            {profile.education?.degree || "Education pending"}
+            {profile.education?.degree || (language === "en" ? "Education pending" : "கல்வி குறிப்பிடப்படவில்லை")}
           </span>
           <span className="flex items-center gap-2">
             <Briefcase size={14} className="text-maroon-400 shrink-0" />
-            {profile.career?.jobTitle || "Career pending"}
+            {profile.career?.jobTitle || (language === "en" ? "Career pending" : "தொழில் குறிப்பிடப்படவில்லை")}
           </span>
         </div>
 
         {/* Actions */}
         <div className="mt-5 flex gap-2">
           <Link to={`/profile/${profile._id}`} className="btn-secondary flex-1 !py-2.5 text-xs">
-            View Profile
+            {t("viewProfile")}
           </Link>
           <button
             id={`interest-${profile._id}`}
             className="btn-primary flex-1 !py-2.5 text-xs"
             onClick={() => onInterest?.(profile.user?._id || profile.user)}
           >
-            <HeartHandshake size={15} /> Interest
+            <HeartHandshake size={15} /> {t("interestBtn")}
           </button>
         </div>
       </div>

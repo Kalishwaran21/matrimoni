@@ -7,13 +7,15 @@ import { toast } from "../components/Toast";
 import Spinner from "../components/Spinner";
 import { DATA } from "../utils/constants";
 import { useAuth } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
 
-const TABS = ["basic", "religion", "location", "education", "career", "family", "lifestyle", "horoscope", "about", "photos"];
+const TABS = ["basic", "religion", "location", "education", "career", "family", "horoscope", "about", "photos", "preferences"];
 const initial = Object.fromEntries(TABS.map((s) => [s, s === "about" ? "" : {}]));
 
 export default function Profile() {
   const navigate = useNavigate();
   const { user, updateUser } = useAuth();
+  const { t, language } = useLanguage();
   const [form, setForm] = useState(initial);
   const [photos, setPhotos] = useState([]);
   const [existingPhotos, setExistingPhotos] = useState([]);
@@ -23,6 +25,9 @@ export default function Profile() {
   const [downloading, setDownloading] = useState(false);
   const [isEditMode, setIsEditMode] = useState(true);
   const [isApproved, setIsApproved] = useState(false);
+  const [dobDay, setDobDay] = useState("");
+  const [dobMonth, setDobMonth] = useState("");
+  const [dobYear, setDobYear] = useState("");
   const cardRef = useRef(null);
 
   useEffect(() => {
@@ -40,6 +45,15 @@ export default function Profile() {
         setExistingPhotos(data.profile.photos || []);
         setIsEditMode(!data.profile.isSubmitted);
         setIsApproved(data.profile.isApproved || false);
+
+        if (data.profile.basic?.dob) {
+          const dobDate = new Date(data.profile.basic.dob);
+          if (!isNaN(dobDate.getTime())) {
+            setDobDay(dobDate.getDate());
+            setDobMonth(dobDate.getMonth() + 1); // 1-12
+            setDobYear(dobDate.getFullYear());
+          }
+        }
       } else {
         setIsEditMode(true);
       }
@@ -55,7 +69,8 @@ export default function Profile() {
         next[section] = { ...next[section], [field]: value };
         
         // Reset dynamic fields
-        if (field === "religion") next.religion.caste = "";
+        if (field === "religion" && section === "religion") next.religion.caste = "";
+        if (field === "religion" && section === "preferences") next.preferences.caste = "";
         if (field === "rasi") next.horoscope.nakshatra = "";
         if (field === "country") next.location.state = "";
       }
@@ -63,48 +78,80 @@ export default function Profile() {
     });
   };
 
+  const handleDobChange = (field, val) => {
+    let d = field === "day" ? val : dobDay;
+    let m = field === "month" ? val : dobMonth;
+    let y = field === "year" ? val : dobYear;
+
+    if (field === "day") setDobDay(val);
+    if (field === "month") setDobMonth(val);
+    if (field === "year") setDobYear(val);
+
+    if (d && m && y) {
+      const paddedMonth = String(m).padStart(2, "0");
+      const paddedDay = String(d).padStart(2, "0");
+      update("basic", "dob", `${y}-${paddedMonth}-${paddedDay}`);
+    } else {
+      update("basic", "dob", "");
+    }
+  };
+
   const handlePhotos = (e) => {
     const files = Array.from(e.target.files);
     setPhotos((prev) => [...prev, ...files]);
-    setPreviews((prev) => [...prev, ...files.map((f) => URL.createObjectURL(f))]);
+
+    const newPreviews = files.map((file) => URL.createObjectURL(file));
+    setPreviews((prev) => [...prev, ...newPreviews]);
   };
 
-  const removeNewPhoto = (index) => {
-    setPhotos((prev) => prev.filter((_, i) => i !== index));
-    setPreviews((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const removeExistingPhoto = (index) => {
-    setExistingPhotos((prev) => prev.filter((_, i) => i !== index));
+  const removePhoto = async (index, isExisting = false, photoId = null) => {
+    if (isExisting && photoId) {
+      if (!window.confirm(language === "en" ? "Delete this photo?" : "இந்த புகைப்படத்தை நீக்கவா?")) return;
+      try {
+        await api.delete(`/profile/photos/${photoId}`);
+        setExistingPhotos((prev) => prev.filter((p) => p.publicId !== photoId));
+        toast.success(language === "en" ? "Photo deleted" : "புகைப்படம் நீக்கப்பட்டது");
+      } catch (err) {
+        toast.error(err.response?.data?.message || (language === "en" ? "Delete failed" : "நீக்க முடியவில்லை"));
+      }
+    } else {
+      setPhotos((prev) => prev.filter((_, i) => i !== index));
+      setPreviews((prev) => prev.filter((_, i) => i !== index));
+    }
   };
 
   const submit = async (e) => {
-    if (e) e.preventDefault();
+    e.preventDefault();
     setSaving(true);
+
+    const formData = new FormData();
+    formData.append("updates", JSON.stringify(form));
+    photos.forEach((file) => formData.append("photos", file));
+
     try {
-      const body = new FormData();
-      const submissionForm = { ...form };
-      submissionForm.photos = existingPhotos;
-      submissionForm.isSubmitted = true;
-      body.append("profile", JSON.stringify(submissionForm));
-      photos.forEach((f) => body.append("photos", f));
-
-      await api.put("/profile", body, { headers: { "Content-Type": "multipart/form-data" } });
-      toast.success("Profile saved successfully!");
-      
-      updateUser({ isProfileSubmitted: true, isProfileApproved: isApproved });
-
-      const { data } = await api.get("/profile/me");
-      if (data.profile) {
-        setExistingPhotos(data.profile.photos || []);
-        setPhotos([]);
-        setPreviews([]);
-        setIsEditMode(false);
-        setIsApproved(data.profile.isApproved || false);
-      }
-      navigate("/matches");
+      const { data } = await api.post("/profile", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+      updateUser(data.user);
+      setForm((cur) => {
+        const next = { ...cur };
+        TABS.forEach((s) => {
+          if (s === "about") {
+            next.about = data.profile.about || "";
+          } else {
+            next[s] = data.profile[s] || {};
+          }
+        });
+        return next;
+      });
+      setExistingPhotos(data.profile.photos || []);
+      setPhotos([]);
+      setPreviews([]);
+      setIsEditMode(false);
+      toast.success(language === "en" ? "Profile saved successfully!" : "சுயவிவரம் வெற்றிகரமாக சேமிக்கப்பட்டது!");
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
-      toast.error(err.response?.data?.message || "Save failed. Try again.");
+      toast.error(err.response?.data?.message || (language === "en" ? "Failed to save profile." : "சுயவிவரத்தை சேமிக்க முடியவில்லை."));
     } finally {
       setSaving(false);
     }
@@ -113,8 +160,9 @@ export default function Profile() {
   const downloadCard = async () => {
     if (!cardRef.current) return;
     setDownloading(true);
-    await new Promise((r) => setTimeout(r, 200));
     try {
+      // Small timeout to let elements render fully
+      await new Promise((resolve) => setTimeout(resolve, 300));
       const canvas = await html2canvas(cardRef.current, {
         scale: 2,
         useCORS: true,
@@ -126,10 +174,10 @@ export default function Profile() {
       link.download = `matrimony_${nameSlug}.png`;
       link.href = canvas.toDataURL("image/png");
       link.click();
-      toast.success("Profile card downloaded successfully!");
+      toast.success(language === "en" ? "Profile card downloaded successfully!" : "சுயவிவர அட்டை பதிவிறக்கம் செய்யப்பட்டது!");
     } catch (err) {
       console.error("Download failed:", err);
-      toast.error("Download failed. Please try again.");
+      toast.error(language === "en" ? "Download failed. Please try again." : "பதிவிறக்கம் தோல்வியடைந்தது. மீண்டும் முயற்சிக்கவும்.");
     } finally {
       setDownloading(false);
     }
@@ -155,16 +203,16 @@ export default function Profile() {
       {/* Header */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <p className="label">Profile</p>
+          <p className="label">{t("profile")}</p>
           <h1 className="mt-2 text-3xl font-black text-slate-950 flex items-center gap-2">
-            Matrimony Profile
+            {t("profileTitle")}
             {isApproved && (
               <span className="inline-flex items-center justify-center rounded-full bg-emerald-500 p-1 text-white shadow-sm" title="Verified Profile">
                 <ShieldCheck size={16} fill="currentColor" />
               </span>
             )}
           </h1>
-          <p className="text-sm text-slate-500 mt-1">Fill in your details below for admin approval and profile card generator.</p>
+          <p className="text-sm text-slate-500 mt-1">{t("profileDesc")}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button
@@ -172,106 +220,85 @@ export default function Profile() {
             onClick={() => setModalOpen(true)}
             className="btn-secondary flex items-center gap-1.5"
           >
-            <Eye size={17} /> Preview Card
+            <Eye size={16} /> {t("previewCard")}
           </button>
-          {!isEditMode ? (
+          {!isEditMode && (
             <button
               type="button"
               onClick={() => setIsEditMode(true)}
               className="btn-primary flex items-center gap-1.5"
             >
-              <Edit size={17} /> Edit Details
-            </button>
-          ) : (
-            <button
-              id="profile-save"
-              type="submit"
-              className="btn-primary flex items-center gap-1.5"
-              disabled={saving}
-            >
-              {saving ? <Spinner size="sm" className="border-white/40 border-t-white" /> : <Save size={17} />}
-              {saving ? "Saving..." : (user?.isProfileSubmitted ? "Complete Editing" : "Complete Profile")}
+              <Edit size={16} /> {t("editDetails")}
             </button>
           )}
         </div>
       </div>
 
-      {/* ── SECTION 1: Photos Upload ── */}
+      {/* ── SECTION 1: Photos ── */}
       <section className="panel">
         <h2 className="mb-5 text-xl font-black text-maroon-800 flex items-center gap-2">
-          <span>📸</span> Profile Photos
+          <span>📸</span> {t("secPhotos")}
         </h2>
+        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+          {/* Upload card */}
+          {isEditMode && (
+            <label className="flex h-40 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-rose-200 bg-rose-50/30 hover:bg-rose-50/60 hover:border-rose-300 transition-all">
+              <Camera size={28} className="text-maroon-600 animate-pulse" />
+              <span className="mt-2 text-xs font-semibold text-maroon-800">{language === "en" ? "Add Photo" : "படம் சேர்க்க"}</span>
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                className="hidden"
+                onChange={handlePhotos}
+              />
+            </label>
+          )}
 
-        {/* Existing photos */}
-        {existingPhotos.length > 0 && (
-          <div className="mb-6">
-            <p className="label mb-3">Current Photos</p>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
-              {existingPhotos.map((p, i) => (
-                <div key={i} className="relative aspect-square overflow-hidden rounded-xl border border-rose-100 group">
-                  <img src={p.url} alt={`Photo ${i + 1}`} className="h-full w-full object-cover" />
-                  {isEditMode && (
-                    <button
-                      type="button"
-                      onClick={() => removeExistingPhoto(i)}
-                      className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-1 shadow hover:bg-red-700 transition opacity-0 group-hover:opacity-100 focus:opacity-100"
-                    >
-                      <X size={14} />
-                    </button>
-                  )}
-                </div>
-              ))}
+          {/* New previews */}
+          {previews.map((url, i) => (
+            <div key={`new-${i}`} className="group relative h-40 overflow-hidden rounded-2xl border border-rose-100 bg-slate-50 shadow-sm animate-fade-in">
+              <img src={url} alt="New preview" className="h-full w-full object-cover" />
+              {isEditMode && (
+                <button
+                  type="button"
+                  onClick={() => removePhoto(i, false)}
+                  className="absolute right-2 top-2 rounded-xl bg-slate-900/60 p-1.5 text-white hover:bg-slate-900 transition"
+                >
+                  <X size={15} />
+                </button>
+              )}
             </div>
-          </div>
-        )}
+          ))}
 
-        {/* Upload block */}
-        {isEditMode && (
-          <label className="block cursor-pointer">
-            <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-rose-200 bg-rose-50/50 py-10 transition hover:border-maroon-400 hover:bg-maroon-50/50">
-              <Upload size={28} className="text-maroon-400 mb-3" />
-              <p className="font-semibold text-slate-700">Click to upload photos</p>
-              <p className="text-sm text-slate-400 mt-1">JPG, PNG — select multiple images</p>
+          {/* Existing photos */}
+          {existingPhotos.map((p, i) => (
+            <div key={`ex-${i}`} className="group relative h-40 overflow-hidden rounded-2xl border border-rose-100 bg-slate-50 shadow-sm">
+              <img src={p.url} alt="Saved photo" className="h-full w-full object-cover" />
+              {isEditMode && (
+                <button
+                  type="button"
+                  onClick={() => removePhoto(i, true, p.publicId)}
+                  className="absolute right-2 top-2 rounded-xl bg-slate-900/60 p-1.5 text-white hover:bg-slate-900 transition"
+                >
+                  <X size={15} />
+                </button>
+              )}
             </div>
-            <input type="file" multiple accept="image/*" onChange={handlePhotos} className="hidden" />
-          </label>
-        )}
-
-        {/* Previews */}
-        {previews.length > 0 && (
-          <div className="mt-5">
-            <p className="label mb-3">New Photos (will be uploaded on save)</p>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
-              {previews.map((src, i) => (
-                <div key={i} className="relative aspect-square overflow-hidden rounded-xl border border-maroon-200 ring-2 ring-maroon-100 group">
-                  <img src={src} alt={`Preview ${i + 1}`} className="h-full w-full object-cover" />
-                  {isEditMode && (
-                    <button
-                      type="button"
-                      onClick={() => removeNewPhoto(i)}
-                      className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-1 shadow hover:bg-red-700 transition opacity-0 group-hover:opacity-100 focus:opacity-100"
-                    >
-                      <X size={14} />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+          ))}
+        </div>
       </section>
 
       {/* ── SECTION 2: Personal Information ── */}
       <section className="panel">
         <h2 className="mb-5 text-xl font-black text-maroon-800 flex items-center gap-2">
-          <span>👤</span> Personal Information
+          <span>👤</span> {t("secBasic")}
         </h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <label className="sm:col-span-2 flex flex-col gap-1.5">
-            <span className="label">Full Name *</span>
+          <label className="flex flex-col gap-1.5">
+            <span className="label">{t("fieldName")} *</span>
             <input
               className="field mt-1"
-              type="text"
               required
               disabled={!isEditMode}
               value={form.basic?.name || ""}
@@ -280,7 +307,7 @@ export default function Profile() {
             />
           </label>
           <label className="flex flex-col gap-1.5">
-            <span className="label">Age *</span>
+            <span className="label">{t("fieldAge")} *</span>
             <input
               className="field mt-1"
               type="number"
@@ -293,18 +320,54 @@ export default function Profile() {
               placeholder="E.g., 25"
             />
           </label>
+          <div className="flex flex-col gap-1.5">
+            <span className="label">{t("fieldDob")} *</span>
+            <div className="grid grid-cols-3 gap-2 mt-1">
+              <select
+                className="field"
+                required
+                disabled={!isEditMode}
+                value={dobDay}
+                onChange={(e) => handleDobChange("day", e.target.value)}
+              >
+                <option value="">Day</option>
+                {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
+              </select>
+
+              <select
+                className="field"
+                required
+                disabled={!isEditMode}
+                value={dobMonth}
+                onChange={(e) => handleDobChange("month", e.target.value)}
+              >
+                <option value="">Month</option>
+                {[
+                  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+                ].map((m, idx) => (
+                  <option key={idx + 1} value={idx + 1}>{m}</option>
+                ))}
+              </select>
+
+              <select
+                className="field"
+                required
+                disabled={!isEditMode}
+                value={dobYear}
+                onChange={(e) => handleDobChange("year", e.target.value)}
+              >
+                <option value="">Year</option>
+                {Array.from({ length: 59 }, (_, i) => 2008 - i).map((y) => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+            </div>
+          </div>
           <label className="flex flex-col gap-1.5">
-            <span className="label">Date of Birth</span>
-            <input
-              className="field mt-1"
-              type="date"
-              disabled={!isEditMode}
-              value={form.basic?.dob ? form.basic.dob.split("T")[0] : ""}
-              onChange={(e) => update("basic", "dob", e.target.value)}
-            />
-          </label>
-          <label className="flex flex-col gap-1.5">
-            <span className="label">Gender *</span>
+            <span className="label">{t("fieldGender")} *</span>
             <select
               className="field mt-1"
               required
@@ -313,39 +376,94 @@ export default function Profile() {
               onChange={(e) => update("basic", "gender", e.target.value)}
             >
               <option value="">Select Gender</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Other">Other</option>
+              <option value="Male">{t("male")}</option>
+              <option value="Female">{t("female")}</option>
+              <option value="Other">{t("other")}</option>
             </select>
           </label>
           <label className="flex flex-col gap-1.5">
-            <span className="label">Marital Status *</span>
+            <span className="label">{t("fieldMarital")} *</span>
             <select
               className="field mt-1"
               required
               disabled={!isEditMode}
-              value={form.basic?.marital || ""}
-              onChange={(e) => update("basic", "marital", e.target.value)}
+              value={form.basic?.maritalStatus || ""}
+              onChange={(e) => update("basic", "maritalStatus", e.target.value)}
             >
-              <option value="">Select Status</option>
-              {DATA.maritalStatus.map((m) => <option key={m} value={m}>{m}</option>)}
+              <option value="">Select status</option>
+              {DATA.maritalStatus.map((s) => (
+                <option key={s} value={s}>{t(s)}</option>
+              ))}
             </select>
           </label>
           <label className="flex flex-col gap-1.5">
-            <span className="label">Mother Tongue *</span>
+            <span className="label">{t("fieldHeight")} *</span>
+            <input
+              className="field mt-1"
+              type="number"
+              required
+              min="100"
+              max="250"
+              disabled={!isEditMode}
+              value={form.basic?.height || ""}
+              onChange={(e) => update("basic", "height", e.target.value)}
+              placeholder="E.g., 165"
+            />
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="label">{t("fieldWeight")}</span>
+            <input
+              className="field mt-1"
+              type="number"
+              min="30"
+              max="200"
+              disabled={!isEditMode}
+              value={form.basic?.weight || ""}
+              onChange={(e) => update("basic", "weight", e.target.value)}
+              placeholder="E.g., 60"
+            />
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="label">{t("fieldPhysical")} *</span>
             <select
               className="field mt-1"
               required
               disabled={!isEditMode}
-              value={form.basic?.language || ""}
-              onChange={(e) => update("basic", "language", e.target.value)}
+              value={form.basic?.physicalStatus || ""}
+              onChange={(e) => update("basic", "physicalStatus", e.target.value)}
             >
-              <option value="">Select Tongue</option>
-              {DATA.motherTongue.map((t) => <option key={t} value={t}>{t}</option>)}
+              <option value="">Select physical status</option>
+              {DATA.physicalStatus.map((s) => (
+                <option key={s} value={s}>{t(s)}</option>
+              ))}
             </select>
           </label>
           <label className="flex flex-col gap-1.5">
-            <span className="label">Religion *</span>
+            <span className="label">{t("fieldColor")} *</span>
+            <select
+              className="field mt-1"
+              required
+              disabled={!isEditMode}
+              value={form.basic?.color || ""}
+              onChange={(e) => update("basic", "color", e.target.value)}
+            >
+              <option value="">Select color</option>
+              {DATA.colors.map((c) => (
+                <option key={c} value={c}>{t(c)}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+      </section>
+
+      {/* ── SECTION 3: Religion ── */}
+      <section className="panel">
+        <h2 className="mb-5 text-xl font-black text-maroon-800 flex items-center gap-2">
+          <span>🕉️</span> {t("secReligion")}
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <label className="flex flex-col gap-1.5">
+            <span className="label">{t("fieldReligion")} *</span>
             <select
               className="field mt-1"
               required
@@ -354,100 +472,112 @@ export default function Profile() {
               onChange={(e) => update("religion", "religion", e.target.value)}
             >
               <option value="">Select Religion</option>
-              {DATA.religions.map((r) => <option key={r} value={r}>{r}</option>)}
+              {DATA.religions.slice(0, -1).map((r) => (
+                <option key={r} value={r}>{t(r)}</option>
+              ))}
             </select>
           </label>
           <label className="flex flex-col gap-1.5">
-            <span className="label">Caste *</span>
+            <span className="label">{t("fieldCaste")} *</span>
             <select
               className="field mt-1"
               required
-              disabled={!isEditMode || form.religion?.religion === "No Bar"}
+              disabled={!isEditMode}
               value={form.religion?.caste || ""}
               onChange={(e) => update("religion", "caste", e.target.value)}
             >
               <option value="">Select Caste</option>
-              {availableCastes.map((c) => <option key={c} value={c}>{c}</option>)}
+              {availableCastes.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
             </select>
           </label>
-          <label className="sm:col-span-2 flex flex-col gap-1.5">
-            <span className="label">Sub Caste / Gotram</span>
+          <label className="flex flex-col gap-1.5">
+            <span className="label">{t("fieldSubcaste")}</span>
             <input
               className="field mt-1"
-              type="text"
               disabled={!isEditMode}
               value={form.religion?.subCaste || ""}
               onChange={(e) => update("religion", "subCaste", e.target.value)}
-              placeholder="E.g., Iyer, Iyengar..."
-            />
-          </label>
-        </div>
-      </section>
-
-      {/* ── SECTION 3: Family Details ── */}
-      <section className="panel">
-        <h2 className="mb-5 text-xl font-black text-maroon-800 flex items-center gap-2">
-          <span>👨‍👩‍👧</span> Family Details
-        </h2>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="flex flex-col gap-1.5">
-            <span className="label">Father's Occupation</span>
-            <input
-              className="field mt-1"
-              type="text"
-              disabled={!isEditMode}
-              value={form.family?.fatherOccupation || ""}
-              onChange={(e) => update("family", "fatherOccupation", e.target.value)}
-              placeholder="E.g., Business, Retired..."
+              placeholder="E.g., Iyer / Sect"
             />
           </label>
           <label className="flex flex-col gap-1.5">
-            <span className="label">Mother's Occupation</span>
-            <input
-              className="field mt-1"
-              type="text"
-              disabled={!isEditMode}
-              value={form.family?.motherOccupation || ""}
-              onChange={(e) => update("family", "motherOccupation", e.target.value)}
-              placeholder="E.g., Homemaker, Teacher..."
-            />
-          </label>
-          <label className="flex flex-col gap-1.5">
-            <span className="label">No. of Siblings</span>
-            <input
-              className="field mt-1"
-              type="number"
-              min="0"
-              disabled={!isEditMode}
-              value={form.family?.siblings || ""}
-              onChange={(e) => update("family", "siblings", e.target.value)}
-              placeholder="E.g., 2"
-            />
-          </label>
-          <label className="flex flex-col gap-1.5">
-            <span className="label">Family Type</span>
+            <span className="label">{t("fieldMotherTongue")} *</span>
             <select
               className="field mt-1"
+              required
               disabled={!isEditMode}
-              value={form.family?.familytype || ""}
-              onChange={(e) => update("family", "familytype", e.target.value)}
+              value={form.religion?.motherTongue || ""}
+              onChange={(e) => update("religion", "motherTongue", e.target.value)}
             >
-              <option value="">Select Type</option>
-              <option value="Joint Family">Joint Family</option>
-              <option value="Nuclear Family">Nuclear Family</option>
+              <option value="">Select Mother Tongue</option>
+              {DATA.motherTongue.map((lang) => (
+                <option key={lang} value={lang}>{t(lang)}</option>
+              ))}
             </select>
           </label>
         </div>
       </section>
 
-      {/* ── SECTION 4: Education & Career ── */}
+      {/* ── SECTION 4: Location ── */}
       <section className="panel">
         <h2 className="mb-5 text-xl font-black text-maroon-800 flex items-center gap-2">
-          <span>🎓</span> Education & Career
+          <span>📍</span> {t("secLocation")}
         </h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <label className="flex flex-col gap-1.5">
-            <span className="label">Highest Education *</span>
+            <span className="label">{t("fieldCountry")} *</span>
+            <select
+              className="field mt-1"
+              required
+              disabled={!isEditMode}
+              value={form.location?.country || ""}
+              onChange={(e) => update("location", "country", e.target.value)}
+            >
+              <option value="">Select Country</option>
+              {DATA.locations.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="label">{t("fieldState")} *</span>
+            <select
+              className="field mt-1"
+              required
+              disabled={!isEditMode}
+              value={form.location?.state || ""}
+              onChange={(e) => update("location", "state", e.target.value)}
+            >
+              <option value="">Select State</option>
+              {availableStates.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="label">{t("fieldCity")} *</span>
+            <input
+              className="field mt-1"
+              required
+              disabled={!isEditMode}
+              value={form.location?.city || ""}
+              onChange={(e) => update("location", "city", e.target.value)}
+              placeholder="E.g., Chennai"
+            />
+          </label>
+        </div>
+      </section>
+
+      {/* ── SECTION 5: Education ── */}
+      <section className="panel">
+        <h2 className="mb-5 text-xl font-black text-maroon-800 flex items-center gap-2">
+          <span>🎓</span> {t("secEducation")}
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="flex flex-col gap-1.5">
+            <span className="label">{t("fieldEducation")} *</span>
             <select
               className="field mt-1"
               required
@@ -455,163 +585,178 @@ export default function Profile() {
               value={form.education?.degree || ""}
               onChange={(e) => update("education", "degree", e.target.value)}
             >
-              <option value="">Select Education</option>
-              {DATA.education.map((e) => <option key={e} value={e}>{e}</option>)}
+              <option value="">Select Degree</option>
+              {DATA.education.map((e) => (
+                <option key={e} value={e}>{e}</option>
+              ))}
             </select>
           </label>
           <label className="flex flex-col gap-1.5">
-            <span className="label">Profession *</span>
+            <span className="label">{t("fieldCollege")}</span>
+            <input
+              className="field mt-1"
+              disabled={!isEditMode}
+              value={form.education?.college || ""}
+              onChange={(e) => update("education", "college", e.target.value)}
+              placeholder="E.g., Anna University"
+            />
+          </label>
+        </div>
+      </section>
+
+      {/* ── SECTION 6: Professional ── */}
+      <section className="panel">
+        <h2 className="mb-5 text-xl font-black text-maroon-800 flex items-center gap-2">
+          <span>💼</span> {t("secCareer")}
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <label className="flex flex-col gap-1.5">
+            <span className="label">{t("fieldProfession")} *</span>
             <select
+              className="field mt-1"
+              required
+              disabled={!isEditMode}
+              value={form.career?.profession || ""}
+              onChange={(e) => update("career", "profession", e.target.value)}
+            >
+              <option value="">Select Profession</option>
+              {DATA.professions.map((p) => (
+                <option key={p} value={p}>{p}</option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="label">{t("fieldJobTitle")} *</span>
+            <input
               className="field mt-1"
               required
               disabled={!isEditMode}
               value={form.career?.jobTitle || ""}
               onChange={(e) => update("career", "jobTitle", e.target.value)}
-            >
-              <option value="">Select Profession</option>
-              {DATA.professions.map((p) => <option key={p} value={p}>{p}</option>)}
-            </select>
+              placeholder="E.g., Senior iOS Developer"
+            />
           </label>
           <label className="flex flex-col gap-1.5">
-            <span className="label">Monthly Income (INR) *</span>
+            <span className="label">{t("fieldCompany")}</span>
+            <input
+              className="field mt-1"
+              disabled={!isEditMode}
+              value={form.career?.company || ""}
+              onChange={(e) => update("career", "company", e.target.value)}
+              placeholder="E.g., Infosys Ltd"
+            />
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="label">{t("fieldSalary")}</span>
             <input
               className="field mt-1"
               type="number"
-              required
               disabled={!isEditMode}
               value={form.career?.salary || ""}
               onChange={(e) => update("career", "salary", e.target.value)}
-              placeholder="E.g., 50000"
+              placeholder="E.g., 850000"
             />
           </label>
         </div>
       </section>
 
-      {/* ── SECTION 5: Physical Attributes ── */}
+      {/* ── SECTION 7: Family Background ── */}
       <section className="panel">
         <h2 className="mb-5 text-xl font-black text-maroon-800 flex items-center gap-2">
-          <span>🧍</span> Physical Attributes
+          <span>👨‍👩‍👧‍👦</span> {t("secFamily")}
         </h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <label className="flex flex-col gap-1.5">
-            <span className="label">Height *</span>
+            <span className="label">{t("fieldFamilyType")} *</span>
             <select
               className="field mt-1"
               required
               disabled={!isEditMode}
-              value={form.basic?.height || ""}
-              onChange={(e) => update("basic", "height", e.target.value)}
+              value={form.family?.familyType || ""}
+              onChange={(e) => update("family", "familyType", e.target.value)}
             >
-              <option value="">Select Height</option>
-              {Array.from({ length: 101 }, (_, i) => 120 + i).map((h) => (
-                <option key={h} value={`${h} cm`}>{h} cm</option>
-              ))}
+              <option value="">Select Family Type</option>
+              <option value="Joint">{t("Joint")}</option>
+              <option value="Nuclear">{t("Nuclear")}</option>
+              <option value="Others">{t("Others")}</option>
             </select>
           </label>
           <label className="flex flex-col gap-1.5">
-            <span className="label">Weight *</span>
+            <span className="label">{t("fieldFamilyValue")} *</span>
             <select
               className="field mt-1"
               required
               disabled={!isEditMode}
-              value={form.basic?.weight || ""}
-              onChange={(e) => update("basic", "weight", e.target.value)}
+              value={form.family?.familyValues || ""}
+              onChange={(e) => update("family", "familyValues", e.target.value)}
             >
-              <option value="">Select Weight</option>
-              {["Below 40 Kg", "40-50 Kg", "51-60 Kg", "61-70 Kg", "71-80 Kg", "81-90 Kg", "91-100 Kg", "Above 100 Kg"].map((w) => (
-                <option key={w} value={w}>{w}</option>
-              ))}
+              <option value="">Select Values</option>
+              <option value="Orthodox">{t("Orthodox")}</option>
+              <option value="Traditional">{t("Traditional")}</option>
+              <option value="Moderate">{t("Moderate")}</option>
+              <option value="Liberal">{t("Liberal")}</option>
             </select>
           </label>
           <label className="flex flex-col gap-1.5">
-            <span className="label">Physical Status *</span>
+            <span className="label">{t("fieldFamilyStatus")} *</span>
             <select
               className="field mt-1"
               required
               disabled={!isEditMode}
-              value={form.basic?.physical || ""}
-              onChange={(e) => update("basic", "physical", e.target.value)}
+              value={form.family?.familyStatus || ""}
+              onChange={(e) => update("family", "familyStatus", e.target.value)}
             >
               <option value="">Select Status</option>
-              {DATA.physicalStatus.map((p) => <option key={p} value={p}>{p}</option>)}
+              <option value="Middle Class">{t("Middle Class")}</option>
+              <option value="Upper Middle Class">{t("Upper Middle Class")}</option>
+              <option value="Rich">{t("Rich")}</option>
+              <option value="Affluent">{t("Affluent")}</option>
             </select>
           </label>
           <label className="flex flex-col gap-1.5">
-            <span className="label">Complexion / Color</span>
-            <select
+            <span className="label">{t("fieldFatherJob")}</span>
+            <input
               className="field mt-1"
               disabled={!isEditMode}
-              value={form.basic?.color || ""}
-              onChange={(e) => update("basic", "color", e.target.value)}
-            >
-              <option value="">Select Color</option>
-              {DATA.colors.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </label>
-        </div>
-      </section>
-
-      {/* ── SECTION 6: Contact Details ── */}
-      <section className="panel">
-        <h2 className="mb-5 text-xl font-black text-maroon-800 flex items-center gap-2">
-          <span>📞</span> Contact Details
-        </h2>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="flex flex-col gap-1.5">
-            <span className="label">Phone Number *</span>
-            <input
-              className="field mt-1 bg-slate-50 cursor-not-allowed text-slate-500"
-              type="text"
-              readOnly
-              value={user?.mobile || ""}
-              title="Change from settings"
+              value={form.family?.fatherOccupation || ""}
+              onChange={(e) => update("family", "fatherOccupation", e.target.value)}
+              placeholder="E.g., Retired Govt Officer"
             />
           </label>
           <label className="flex flex-col gap-1.5">
-            <span className="label">Email Address *</span>
+            <span className="label">{t("fieldMotherJob")}</span>
             <input
-              className="field mt-1 bg-slate-50 cursor-not-allowed text-slate-500"
-              type="text"
-              readOnly
-              value={user?.email || ""}
-              title="Change from settings"
+              className="field mt-1"
+              disabled={!isEditMode}
+              value={form.family?.motherOccupation || ""}
+              onChange={(e) => update("family", "motherOccupation", e.target.value)}
+              placeholder="E.g., Homemaker"
             />
           </label>
           <label className="flex flex-col gap-1.5">
-            <span className="label">Native Place *</span>
+            <span className="label">{t("fieldSiblings")}</span>
             <input
               className="field mt-1"
-              type="text"
-              required
+              type="number"
+              min="0"
+              max="15"
               disabled={!isEditMode}
-              value={form.location?.nativePlace || ""}
-              onChange={(e) => update("location", "nativePlace", e.target.value)}
-              placeholder="E.g., Madurai"
-            />
-          </label>
-          <label className="flex flex-col gap-1.5">
-            <span className="label">Current Place *</span>
-            <input
-              className="field mt-1"
-              type="text"
-              required
-              disabled={!isEditMode}
-              value={form.location?.currentPlace || ""}
-              onChange={(e) => update("location", "currentPlace", e.target.value)}
-              placeholder="E.g., Chennai"
+              value={form.family?.siblings || ""}
+              onChange={(e) => update("family", "siblings", e.target.value)}
+              placeholder="E.g., 2"
             />
           </label>
         </div>
       </section>
 
-      {/* ── SECTION 7: Horoscope Details ── */}
+      {/* ── SECTION 9: Horoscope Details ── */}
       <section className="panel">
         <h2 className="mb-5 text-xl font-black text-maroon-800 flex items-center gap-2">
-          <span>⭐</span> Horoscope Details
+          <span>✨</span> {t("secHoroscope")}
         </h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <label className="flex flex-col gap-1.5">
-            <span className="label">Rasi *</span>
+            <span className="label">{t("fieldRasi")} *</span>
             <select
               className="field mt-1"
               required
@@ -624,7 +769,7 @@ export default function Profile() {
             </select>
           </label>
           <label className="flex flex-col gap-1.5">
-            <span className="label">Natchathiram *</span>
+            <span className="label">{t("fieldStar")} *</span>
             <select
               className="field mt-1"
               required
@@ -637,7 +782,7 @@ export default function Profile() {
             </select>
           </label>
           <label className="flex flex-col gap-1.5">
-            <span className="label">Dosham *</span>
+            <span className="label">{t("fieldDosham")} *</span>
             <select
               className="field mt-1"
               required
@@ -650,7 +795,7 @@ export default function Profile() {
             </select>
           </label>
           <label className="flex flex-col gap-1.5">
-            <span className="label">Gothram / Kulam</span>
+            <span className="label">{t("fieldGothram")}</span>
             <input
               className="field mt-1"
               type="text"
@@ -663,20 +808,135 @@ export default function Profile() {
         </div>
       </section>
 
-      {/* ── SECTION 8: About Yourself ── */}
+      {/* ── SECTION 10: About Yourself ── */}
       <section className="panel">
         <h2 className="mb-5 text-xl font-black text-maroon-800 flex items-center gap-2">
-          <span>💬</span> About Yourself
+          <span>💬</span> {t("secAbout")}
         </h2>
         <div className="flex flex-col gap-2">
-          <span className="label">Brief Bio</span>
+          <span className="label">{t("fieldBio")}</span>
           <textarea
             className="field mt-1 resize-y min-h-[140px]"
             disabled={!isEditMode}
             value={form.about || ""}
             onChange={(e) => update("about", "about", e.target.value)}
-            placeholder="Write a few lines about yourself, your interests, and what you are looking for in a partner..."
+            placeholder={t("fieldBioPlaceholder")}
           />
+        </div>
+      </section>
+
+      {/* ── SECTION 11: Partner Preferences ── */}
+      <section className="panel">
+        <h2 className="mb-5 text-xl font-black text-maroon-800 flex items-center gap-2">
+          <span>🎯</span> {t("secPreferences")}
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Min Age */}
+          <label className="flex flex-col gap-1.5">
+            <span className="label">{t("prefMinAge")}</span>
+            <input
+              className="field mt-1"
+              type="number"
+              min="18"
+              max="80"
+              disabled={!isEditMode}
+              value={form.preferences?.ageMin || ""}
+              onChange={(e) => update("preferences", "ageMin", e.target.value)}
+              placeholder="E.g., 21"
+            />
+          </label>
+
+          {/* Max Age */}
+          <label className="flex flex-col gap-1.5">
+            <span className="label">{t("prefMaxAge")}</span>
+            <input
+              className="field mt-1"
+              type="number"
+              min="18"
+              max="80"
+              disabled={!isEditMode}
+              value={form.preferences?.ageMax || ""}
+              onChange={(e) => update("preferences", "ageMax", e.target.value)}
+              placeholder="E.g., 30"
+            />
+          </label>
+
+          {/* Expected Religion */}
+          <label className="flex flex-col gap-1.5">
+            <span className="label">{t("prefReligion")}</span>
+            <select
+              className="field mt-1"
+              disabled={!isEditMode}
+              value={form.preferences?.religion || ""}
+              onChange={(e) => update("preferences", "religion", e.target.value)}
+            >
+              <option value="">No Bar / Select Religion</option>
+              {DATA.religions.map((r) => (
+                <option key={r} value={r}>{t(r)}</option>
+              ))}
+            </select>
+          </label>
+
+          {/* Expected Caste */}
+          <label className="flex flex-col gap-1.5">
+            <span className="label">{t("prefCaste")}</span>
+            <select
+              className="field mt-1"
+              disabled={!isEditMode}
+              value={form.preferences?.caste || ""}
+              onChange={(e) => update("preferences", "caste", e.target.value)}
+            >
+              <option value="">No Bar / Select Caste</option>
+              {(DATA.castes[form.preferences?.religion] || ["Others"]).map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </label>
+
+          {/* Expected Job */}
+          <label className="flex flex-col gap-1.5">
+            <span className="label">{t("prefJob")}</span>
+            <select
+              className="field mt-1"
+              disabled={!isEditMode}
+              value={form.preferences?.job || ""}
+              onChange={(e) => update("preferences", "job", e.target.value)}
+            >
+              <option value="">No Bar / Select Job</option>
+              {DATA.professions.map((p) => (
+                <option key={p} value={p}>{p}</option>
+              ))}
+            </select>
+          </label>
+
+          {/* Expected Min Income */}
+          <label className="flex flex-col gap-1.5">
+            <span className="label">{t("prefSalary")}</span>
+            <input
+              className="field mt-1"
+              type="number"
+              disabled={!isEditMode}
+              value={form.preferences?.salary || ""}
+              onChange={(e) => update("preferences", "salary", e.target.value)}
+              placeholder="E.g., 600000"
+            />
+          </label>
+
+          {/* Expected Language */}
+          <label className="flex flex-col gap-1.5 sm:col-span-2 lg:col-span-3">
+            <span className="label">{t("prefLanguage")}</span>
+            <select
+              className="field mt-1"
+              disabled={!isEditMode}
+              value={form.preferences?.language || ""}
+              onChange={(e) => update("preferences", "language", e.target.value)}
+            >
+              <option value="">No Bar / Select Language</option>
+              {DATA.motherTongue.map((lang) => (
+                <option key={lang} value={lang}>{t(lang)}</option>
+              ))}
+            </select>
+          </label>
         </div>
       </section>
 
@@ -687,7 +947,7 @@ export default function Profile() {
           onClick={() => setModalOpen(true)}
           className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-soft hover:bg-slate-50 transition"
         >
-          <Eye size={17} /> Preview Card
+          <Eye size={17} /> {t("previewCard")}
         </button>
         {!isEditMode ? (
           <button
@@ -695,165 +955,162 @@ export default function Profile() {
             onClick={() => setIsEditMode(true)}
             className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-maroon-600 px-5 py-3 text-sm font-semibold text-white shadow-soft transition hover:bg-maroon-700 hover:-translate-y-0.5 active:translate-y-0"
           >
-            <Edit size={17} /> Edit Details
+            <Edit size={17} /> {t("editDetails")}
           </button>
         ) : (
           <button
             type="submit"
             disabled={saving}
-            className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-maroon-600 px-5 py-3 text-sm font-semibold text-white shadow-soft transition hover:bg-maroon-700 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50"
+            className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 px-5 py-3 text-sm font-semibold text-white shadow-soft transition hover:from-rose-600 hover:to-pink-700 disabled:opacity-50 hover:-translate-y-0.5 active:translate-y-0"
           >
-            {saving ? <Spinner size="sm" className="border-white/40 border-t-white" /> : <Save size={17} />}
-            {saving ? "Saving..." : (user?.isProfileSubmitted ? "Complete Editing" : "Complete Profile")}
+            {saving ? (
+              <>
+                <Spinner size="sm" className="border-white/40 border-t-white" /> {t("saving")}
+              </>
+            ) : (
+              <>
+                <Save size={17} />
+                {form.basic?.name ? t("completeEditing") : t("completeProfile")}
+              </>
+            )}
           </button>
         )}
       </div>
 
-      {/* ══════════════════════════════════════
-           PROFILE CARD PREVIEW MODAL
-      ══════════════════════════════════════ */}
+      {/* ── CARD PREVIEW MODAL ── */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-955/70 backdrop-blur-sm overflow-y-auto">
-          <div className="relative bg-white rounded-3xl p-6 shadow-soft max-w-lg w-full max-h-[90vh] overflow-y-auto">
-            {/* Close Button */}
-            <button
-              onClick={() => setModalOpen(false)}
-              className="absolute top-4 right-4 bg-rose-50 text-maroon-600 rounded-full p-2 hover:bg-maroon-600 hover:text-white transition"
-              aria-label="Close"
-            >
-              <X size={18} />
-            </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-fade-in">
+          <div className="relative flex max-h-[90vh] w-full max-w-lg flex-col rounded-3xl border border-rose-100 bg-white shadow-2xl animate-scale-up">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-rose-100/60 p-5">
+              <h3 className="text-lg font-bold text-slate-950">{t("previewCard")}</h3>
+              <button
+                type="button"
+                onClick={() => setModalOpen(false)}
+                className="rounded-xl p-1.5 text-slate-400 hover:bg-rose-50 hover:text-slate-600 transition"
+              >
+                <X size={18} />
+              </button>
+            </div>
 
-            <h2 className="text-2xl font-black text-maroon-800">Your Profile Card</h2>
-            <p className="text-xs text-slate-400 mb-5">Preview how your profile will appear. Download it as a PNG image.</p>
-
-            {/* ── DOWNLOADABLE PROFILE CARD ── */}
-            <div className="border border-rose-100 rounded-2xl overflow-hidden p-1 bg-white mb-6">
+            {/* Printable Card Area */}
+            <div className="flex-1 overflow-y-auto p-6 bg-slate-50/50">
               <div
                 ref={cardRef}
-                className="w-full bg-gradient-to-br from-[#fff5f8] via-white to-[#fff9e6] overflow-hidden relative flex flex-col p-6 items-center border border-rose-100 rounded-xl"
-                style={{ fontFamily: "Inter, sans-serif" }}
+                className="mx-auto max-w-[370px] overflow-hidden rounded-3xl border border-rose-200/80 bg-white shadow-md"
+                style={{ width: "370px" }}
               >
-                {/* banner background */}
-                <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-r from-maroon-700 via-maroon-800 to-maroon-900 flex items-center justify-center z-0">
-                  <span className="text-[10px] tracking-[4px] font-black text-white/30 uppercase select-none">
-                    💍 MatriMonial 💍
-                  </span>
-                </div>
-
-                {/* photo */}
-                <div className="relative h-28 w-28 rounded-full bg-gradient-to-br from-maroon-600 to-orange-500 p-1 mt-6 z-10 shadow-md">
+                {/* Photo container */}
+                <div className="relative h-[280px] w-full bg-slate-100">
                   {cardPhoto ? (
                     <img
                       src={cardPhoto}
-                      alt={form.basic?.name || "Profile"}
-                      className="h-full w-full object-cover rounded-full border-4 border-white bg-rose-50"
+                      alt={name}
+                      className="h-full w-full object-cover"
+                      crossOrigin="anonymous"
                     />
                   ) : (
-                    <div className="h-full w-full rounded-full border-4 border-white bg-rose-100 flex items-center justify-center text-4xl font-black text-maroon-300 select-none">
-                      {(form.basic?.name || user?.fullName || "?").charAt(0).toUpperCase()}
+                    <div className="flex h-full w-full flex-col items-center justify-center text-slate-400">
+                      <Camera size={40} strokeWidth={1.5} />
+                      <span className="mt-2 text-xs font-semibold">{language === "en" ? "No Image Uploaded" : "படம் இல்லை"}</span>
                     </div>
                   )}
-                  <div className="absolute bottom-1 right-1 w-7 h-7 bg-amber-400 border-2 border-white rounded-full flex items-center justify-center text-xs shadow">
-                    💍
+                  {/* Status Overlay badge */}
+                  <div className="absolute left-4 top-4 flex items-center gap-1 rounded-full bg-slate-900/70 px-3 py-1.5 text-[10px] font-black tracking-widest text-white uppercase backdrop-blur-sm">
+                    {profileId}
                   </div>
-                </div>
-
-                {/* header details */}
-                <div className="mt-4 text-center w-full z-10">
-                  <h3 className="text-xl font-black text-maroon-900 flex items-center justify-center gap-1.5">
-                    {form.basic?.name || user?.fullName || "—"}
-                    {isApproved && (
-                      <span className="inline-flex items-center justify-center rounded-full bg-emerald-500 p-0.5 text-white shadow-sm shrink-0" style={{ width: "16px", height: "16px" }}>
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><polyline points="20 6 9 17 4 12"/></svg>
-                      </span>
-                    )}
-                  </h3>
-                  <p className="text-xs text-slate-400 font-semibold tracking-wide mt-1">
-                    {tagline}
-                  </p>
-                </div>
-
-                <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-rose-100 to-transparent my-4" />
-
-                {/* details grid */}
-                <div className="grid grid-cols-2 gap-2.5 w-full text-left">
-                  {[
-                    { icon: "🎂", label: "Age", value: form.basic?.age ? `${form.basic.age} yrs` : "—" },
-                    { icon: "⚧", label: "Gender", value: form.basic?.gender || "—" },
-                    { icon: "📏", label: "Height", value: form.basic?.height || "—" },
-                    { icon: "⚖️", label: "Weight", value: form.basic?.weight || "—" },
-                    { icon: "💍", label: "Status", value: form.basic?.marital || "—" },
-                    { icon: "🗣️", label: "Tongue", value: form.basic?.language || "—" },
-                    { icon: "⭐", label: "Rasi", value: form.horoscope?.rasi || "—" },
-                    { icon: "🌟", label: "Star", value: form.horoscope?.nakshatra || "—" },
-                    { icon: "🛕", label: "Religion", value: form.religion?.religion || "—" },
-                    { icon: "🏷️", label: "Caste", value: form.religion?.caste || "—" },
-                    { icon: "🎓", label: "Education", value: form.education?.degree || "—" },
-                    { icon: "💼", label: "Profession", value: form.career?.jobTitle || "—" },
-                    { icon: "💰", label: "Income", value: form.career?.salary ? `₹${fmt(form.career.salary)} p.a.` : "—" },
-                    { icon: "🏡", label: "Native Place", value: form.location?.nativePlace || "—" },
-                    { icon: "📍", label: "Current Place", value: form.location?.currentPlace || "—" },
-                    { icon: "🎨", label: "Color", value: form.basic?.color || "—" }
-                  ].map(({ icon, label, value }) => (
-                    <div key={label} className="flex gap-2 bg-[#fdf1f6] border border-[#f8d7e6] rounded-xl p-2 items-start">
-                      <span className="text-sm shrink-0 mt-0.5">{icon}</span>
-                      <div>
-                        <span className="block text-[9px] font-bold text-maroon-600 uppercase tracking-wide">
-                          {label}
-                        </span>
-                        <span className="block text-xs font-semibold text-slate-800 leading-tight">
-                          {value}
-                        </span>
-                      </div>
+                  {isApproved && (
+                    <div className="absolute right-4 top-4 flex items-center gap-1 rounded-full bg-emerald-500 px-3 py-1.5 text-[10px] font-black tracking-widest text-white uppercase shadow-sm">
+                      <ShieldCheck size={12} fill="currentColor" /> {language === "en" ? "VERIFIED" : "சரிபார்க்கப்பட்டது"}
                     </div>
-                  ))}
+                  )}
                 </div>
 
-                <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-rose-100 to-transparent my-4" />
+                {/* Card Details */}
+                <div className="bg-gradient-to-b from-rose-50/20 to-white p-6">
+                  <div>
+                    <h4 className="text-xl font-black text-slate-950">{form.basic?.name || "—"}</h4>
+                    <p className="mt-1 text-xs font-semibold text-rose-600 uppercase tracking-wider">{tagline}</p>
+                  </div>
 
-                {/* bio */}
-                <div className="w-full bg-[#fff8fb] border border-[#f8d7e6] rounded-xl p-3 text-xs text-slate-600 italic text-left min-h-12 leading-relaxed">
-                  {form.about || "No bio provided."}
-                </div>
+                  {/* Highlights Grid */}
+                  <div className="mt-6 grid grid-cols-2 gap-x-4 gap-y-3.5 border-t border-rose-100/60 pt-5 text-sm">
+                    <div>
+                      <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{t("fieldDob")}</p>
+                      <p className="mt-0.5 font-bold text-slate-800">
+                        {form.basic?.dob ? new Date(form.basic.dob).toLocaleDateString(language === "en" ? "en-IN" : "ta-IN", { day: "numeric", month: "short", year: "numeric" }) : "—"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{t("fieldMarital")}</p>
+                      <p className="mt-0.5 font-bold text-slate-800">{form.basic?.maritalStatus ? t(form.basic.maritalStatus) : "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{t("fieldReligion")} / {t("fieldCaste")}</p>
+                      <p className="mt-0.5 font-bold text-slate-800">
+                        {form.religion?.religion ? `${t(form.religion.religion)}, ${form.religion.caste || "—"}` : "—"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{t("fieldMotherTongue")}</p>
+                      <p className="mt-0.5 font-bold text-slate-800">{form.religion?.motherTongue ? t(form.religion.motherTongue) : "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{t("fieldEducation")}</p>
+                      <p className="mt-0.5 font-bold text-slate-800">{form.education?.degree || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{t("fieldSalary")}</p>
+                      <p className="mt-0.5 font-bold text-slate-800">₹ {fmt(form.career?.salary)}</p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{t("fieldRasi")} / {t("fieldStar")}</p>
+                      <p className="mt-0.5 font-bold text-slate-800">
+                        {form.horoscope?.rasi ? `${form.horoscope.rasi}, ${form.horoscope.nakshatra || "—"}` : "—"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{t("fieldDosham")}</p>
+                      <p className="mt-0.5 font-bold text-slate-800">{form.horoscope?.dosham || "—"}</p>
+                    </div>
+                  </div>
 
-                {/* contact details */}
-                <div className="flex flex-wrap gap-2 justify-center w-full mt-1">
-                  <span className="bg-gradient-to-r from-rose-50 to-[#fff8e1] border border-rose-200 rounded-full px-3 py-1 text-xs font-bold text-maroon-800 shadow-sm flex items-center gap-1">
-                    📞 {user?.mobile || "—"}
-                  </span>
-                  <span className="bg-gradient-to-r from-rose-50 to-[#fff8e1] border border-rose-200 rounded-full px-3 py-1 text-xs font-bold text-maroon-800 shadow-sm flex items-center gap-1">
-                    ✉️ {user?.email || "—"}
-                  </span>
-                </div>
-
-                <div className="text-[9px] text-[#e0a0b5] font-black uppercase tracking-wider mt-4">
-                  MatriMonial • Find Your Perfect Match
+                  {/* Brand Footer in Card */}
+                  <div className="mt-6 flex items-center justify-between border-t border-rose-100/60 pt-4 text-[10px] font-semibold text-slate-400">
+                    <p className="flex items-center gap-1">
+                      <span className="text-rose-500">💖</span> Soulmate Matrimony
+                    </p>
+                    <p>soulmate.in</p>
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Modal Actions */}
-            <div className="flex gap-3 mt-4">
+            <div className="flex gap-3 border-t border-rose-100/60 p-5 bg-slate-50/50">
+              <button
+                type="button"
+                onClick={() => setModalOpen(false)}
+                className="flex-1 rounded-xl border border-slate-200 bg-white py-3 text-sm font-semibold text-slate-700 shadow-soft hover:bg-slate-50 transition"
+              >
+                {language === "en" ? "Close" : "மூடு"}
+              </button>
               <button
                 type="button"
                 onClick={downloadCard}
                 disabled={downloading}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-blue-600 text-white font-bold py-3 text-sm transition hover:bg-blue-700 shadow-md disabled:opacity-50"
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 py-3 text-sm font-semibold text-white shadow-soft transition hover:from-rose-600 hover:to-pink-700 disabled:opacity-50"
               >
-                {downloading ? <Spinner size="sm" className="border-white/40 border-t-white" /> : <Download size={16} />}
-                {downloading ? "Generating..." : "Download as PNG"}
+                {downloading ? (
+                  <>
+                    <Spinner size="sm" className="border-white/40 border-t-white" /> {language === "en" ? "Downloading..." : "பதிவிறக்கம் செய்யப்படுகிறது..."}
+                  </>
+                ) : (
+                  <>
+                    <Download size={16} /> {language === "en" ? "Download Card" : "அட்டையை பதிவிறக்கு"}
+                  </>
+                )}
               </button>
-              {isEditMode && (
-                <button
-                  type="button"
-                  onClick={submit}
-                  disabled={saving}
-                  className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-maroon-600 text-white font-bold py-3 text-sm transition hover:bg-maroon-700 shadow-md disabled:opacity-50"
-                >
-                  <Save size={16} /> {user?.isProfileSubmitted ? "Complete Editing" : "Complete Profile"}
-                </button>
-              )}
             </div>
           </div>
         </div>

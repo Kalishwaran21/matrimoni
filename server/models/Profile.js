@@ -43,11 +43,6 @@ const profileSchema = new mongoose.Schema(
       siblings: Number,
       familytype: String
     },
-    lifestyle: {
-      smoking: { type: String, enum: ["No", "Occasionally", "Yes"], default: "No" },
-      drinking: { type: String, enum: ["No", "Occasionally", "Yes"], default: "No" },
-      foodType: { type: String, enum: ["Vegetarian", "Non-Vegetarian", "Eggetarian", "Vegan"], default: "Vegetarian" }
-    },
     horoscope: {
       rasi: String,
       nakshatra: String,
@@ -62,7 +57,9 @@ const profileSchema = new mongoose.Schema(
       caste: String,
       education: String,
       salary: Number,
-      location: String
+      location: String,
+      job: String,
+      language: String
     },
     photos: [
       {

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { MessageCircle, Send } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useSocket } from "../context/SocketContext";
+import { useLanguage } from "../context/LanguageContext";
 import { api } from "../services/api";
 import { FullPageSpinner } from "../components/Spinner";
 
@@ -23,6 +24,7 @@ function Avatar({ name, online }) {
 export default function Chat() {
   const { user } = useAuth();
   const { socket, presence } = useSocket();
+  const { t, language } = useLanguage();
   const [chats, setChats] = useState([]);
   const [active, setActive] = useState(null);
   const [text, setText] = useState("");
@@ -93,15 +95,23 @@ export default function Chat() {
       {/* Sidebar */}
       <aside className="flex flex-col border-r border-rose-100">
         <div className="border-b border-rose-100 p-5">
-          <h1 className="text-xl font-black text-slate-950">Messages</h1>
-          <p className="text-sm text-slate-400 mt-0.5">{chats.length} conversation{chats.length !== 1 ? "s" : ""}</p>
+          <h1 className="text-xl font-black text-slate-950">{t("messagesTitle")}</h1>
+          <p className="text-sm text-slate-400 mt-0.5">
+            {language === "en"
+              ? `${chats.length} conversation${chats.length !== 1 ? "s" : ""}`
+              : `${chats.length} உரையாடல்கள்`}
+          </p>
         </div>
         <div className="flex-1 overflow-y-auto">
           {chats.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center p-6">
               <MessageCircle size={32} className="text-maroon-200 mb-3" />
-              <p className="text-sm font-semibold text-slate-700">No conversations yet</p>
-              <p className="text-xs text-slate-400 mt-1">Accept an interest to start chatting.</p>
+              <p className="text-sm font-semibold text-slate-700">
+                {language === "en" ? "No conversations yet" : "உரையாடல்கள் இன்னும் தொடங்கவில்லை"}
+              </p>
+              <p className="text-xs text-slate-400 mt-1">
+                {language === "en" ? "Accept an interest to start chatting." : "பேசத் தொடங்க விருப்பக்கோரிக்கையை ஏற்கவும்."}
+              </p>
             </div>
           ) : (
             chats.map((chat) => {
@@ -121,7 +131,7 @@ export default function Chat() {
                     <p className={`font-semibold truncate ${isActive ? "text-maroon-700" : "text-slate-900"}`}>
                       {other?.fullName}
                     </p>
-                    <p className="text-xs text-slate-400 mt-0.5">{online ? "Online" : "Offline"}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">{online ? t("online") : t("offline")}</p>
                   </div>
                 </button>
               );
@@ -141,11 +151,11 @@ export default function Chat() {
                 <p className="font-black text-slate-950">{activeOther?.fullName}</p>
                 <p className="text-xs text-slate-400">
                   {typing ? (
-                    <span className="text-emerald-600 font-medium">Typing...</span>
+                    <span className="text-emerald-600 font-medium">{language === "en" ? "Typing..." : "தட்டச்சு செய்கிறார்..."}</span>
                   ) : isOnline ? (
-                    <span className="text-emerald-600 font-medium">Online</span>
+                    <span className="text-emerald-600 font-medium">{t("online")}</span>
                   ) : (
-                    "Offline"
+                    t("offline")
                   )}
                 </p>
               </div>
@@ -177,7 +187,7 @@ export default function Chat() {
               <input
                 id="chat-input"
                 className="field flex-1"
-                placeholder="Type a message..."
+                placeholder={t("typeMessage")}
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 onKeyDown={handleKey}
@@ -197,9 +207,11 @@ export default function Chat() {
         ) : (
           <div className="flex flex-1 flex-col items-center justify-center text-center p-8">
             <MessageCircle size={48} className="text-maroon-200 mb-4" />
-            <p className="text-lg font-black text-slate-900">Select a conversation</p>
+            <p className="text-lg font-black text-slate-900">{t("noChatSelect")}</p>
             <p className="mt-2 text-sm text-slate-400 max-w-xs">
-              Choose a conversation from the left panel to start messaging.
+              {language === "en"
+                ? "Choose a conversation from the left panel to start messaging."
+                : "அரட்டையடிக்க இடது பக்க பேனலில் இருந்து ஒரு நபரைத் தேர்ந்தெடுக்கவும்."}
             </p>
           </div>
         )}
