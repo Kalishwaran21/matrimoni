@@ -55,8 +55,9 @@ const profileSchema = new mongoose.Schema(
     },
     assets: {
       house: { type: String, enum: ["Own House", "Rented House", "None / Others"], default: "None / Others" },
-      land: String,
-      totalValue: String
+      landValue: Number,
+      landUnit: { type: String, enum: ["Acres", "Cents"] },
+      assetValueLakhs: Number
     },
     about: String,
     preferences: {

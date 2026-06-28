@@ -842,26 +842,46 @@ export default function Profile() {
             </select>
           </label>
           <label className="flex flex-col gap-1.5">
-            <span className="label">{t("fieldLand")}</span>
-            <input
-              className="field mt-1"
-              type="text"
-              disabled={!isEditMode}
-              value={form.assets?.land || ""}
-              onChange={(e) => update("assets", "land", e.target.value)}
-              placeholder={language === "en" ? "E.g., 2 Acres / 5 Cents" : "உதாரணம்: 2 ஏக்கர் / 5 சென்ட்"}
-            />
+            <span className="label">{language === "en" ? "Land Details" : "நில விவரங்கள்"}</span>
+            <div className="flex gap-2">
+              <input
+                className="field mt-1 flex-1"
+                type="number"
+                min="0"
+                step="0.01"
+                disabled={!isEditMode}
+                value={form.assets?.landValue || ""}
+                onChange={(e) => update("assets", "landValue", e.target.value)}
+                placeholder="E.g., 2"
+              />
+              <select
+                className="field mt-1 flex-1"
+                disabled={!isEditMode}
+                value={form.assets?.landUnit || ""}
+                onChange={(e) => update("assets", "landUnit", e.target.value)}
+              >
+                <option value="">Select Unit</option>
+                <option value="Acres">{language === "en" ? "Acres" : "ஏக்கர்"}</option>
+                <option value="Cents">{language === "en" ? "Cents" : "சென்ட்"}</option>
+              </select>
+            </div>
           </label>
           <label className="flex flex-col gap-1.5">
-            <span className="label">{t("fieldAssetValue")}</span>
-            <input
-              className="field mt-1"
-              type="text"
-              disabled={!isEditMode}
-              value={form.assets?.totalValue || ""}
-              onChange={(e) => update("assets", "totalValue", e.target.value)}
-              placeholder={language === "en" ? "E.g., ₹50 Lakhs / ₹1 Crore" : "உதாரணம்: ₹50 லட்சம் / ₹1 கோடி"}
-            />
+            <span className="label">{language === "en" ? "Total Asset Value (in Lakhs)" : "மொத்த சொத்து மதிப்பு (லட்சத்தில்)"}</span>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">₹</span>
+              <input
+                className="field mt-1 pl-8 pr-16 w-full"
+                type="number"
+                min="0"
+                step="0.1"
+                disabled={!isEditMode}
+                value={form.assets?.assetValueLakhs || ""}
+                onChange={(e) => update("assets", "assetValueLakhs", e.target.value)}
+                placeholder="50"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">Lakhs</span>
+            </div>
           </label>
         </div>
       </section>
