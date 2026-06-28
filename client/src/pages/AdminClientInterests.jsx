@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { HeartHandshake, CheckCircle2, XCircle, Mail, Phone, Calendar, ArrowRightLeft, ArrowUpRight, ArrowDownLeft } from "lucide-react";
+import { Link } from "react-router-dom";
+import { HeartHandshake, CheckCircle2, XCircle, Mail, Phone, Calendar, ArrowRightLeft, ArrowUpRight, ArrowDownLeft, ExternalLink } from "lucide-react";
 import { api } from "../services/api";
 import { toast } from "../components/Toast";
 import { CardSkeleton } from "../components/Spinner";
@@ -84,8 +85,14 @@ export default function AdminClientInterests() {
                       <span className="text-[10px] font-bold text-maroon-700 uppercase bg-maroon-50 px-2 py-0.5 rounded-md">
                         Your Client
                       </span>
-                      <h4 className="font-bold text-slate-900 text-sm mt-1">{client?.fullName}</h4>
-                      <p className="text-xs text-slate-500">
+                      {clientProfile?._id ? (
+                        <Link to={`/profile/${clientProfile._id}`} className="font-bold text-slate-900 text-sm mt-1 hover:text-maroon-600 hover:underline flex items-center gap-1 w-fit">
+                          {client?.fullName} <ExternalLink size={12} />
+                        </Link>
+                      ) : (
+                        <h4 className="font-bold text-slate-900 text-sm mt-1">{client?.fullName}</h4>
+                      )}
+                      <p className="text-xs text-slate-500 mt-0.5">
                         {clientProfile?.basic?.age ? `${clientProfile.basic.age} Yrs` : "—"} • {clientProfile?.location?.city || "—"}
                       </p>
                     </div>
@@ -117,8 +124,14 @@ export default function AdminClientInterests() {
                       <span className="text-[10px] font-bold text-slate-600 uppercase bg-slate-100 px-2 py-0.5 rounded-md">
                         {isClientSender ? "Receiver" : "Sender / Match"}
                       </span>
-                      <h4 className="font-bold text-slate-900 text-sm mt-1">{sender?.fullName}</h4>
-                      <p className="text-xs text-slate-500">
+                      {senderProfile?._id ? (
+                        <Link to={`/profile/${senderProfile._id}`} className="font-bold text-slate-900 text-sm mt-1 hover:text-slate-600 hover:underline flex items-center gap-1 w-fit">
+                          {sender?.fullName} <ExternalLink size={12} />
+                        </Link>
+                      ) : (
+                        <h4 className="font-bold text-slate-900 text-sm mt-1">{sender?.fullName}</h4>
+                      )}
+                      <p className="text-xs text-slate-500 mt-0.5">
                         {senderProfile?.basic?.age ? `${senderProfile.basic.age} Yrs` : "—"} • {senderProfile?.location?.city || "—"} • {senderProfile?.career?.jobTitle || "—"}
                       </p>
                     </div>

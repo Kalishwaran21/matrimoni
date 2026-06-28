@@ -1,6 +1,7 @@
 import cloudinary from "../config/cloudinary.js";
 import Profile from "../models/Profile.js";
 import Interest from "../models/Interest.js";
+import Notification from "../models/Notification.js";
 
 const completionFields = [
   "basic.name",
@@ -103,6 +104,25 @@ export const getProfile = async (req, res, next) => {
 
       if (interest && interest.status === "Accepted") {
         isContactShared = true;
+      }
+
+      // Add Profile Viewed Notification
+      if (req.user.role !== "admin") {
+        const recent = await Notification.findOne({
+          user: profile.user._id,
+          type: "Profile Viewed",
+          message: { $regex: req.user.fullName },
+          createdAt: { $gt: new Date(Date.now() - 3600000) }
+        });
+        
+        if (!recent) {
+          await Notification.create({
+            user: profile.user._id,
+            type: "Profile Viewed",
+            title: "Someone viewed your profile",
+            message: `${req.user.fullName} recently viewed your profile.`
+          });
+        }
       }
     }
 

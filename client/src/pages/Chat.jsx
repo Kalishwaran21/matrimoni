@@ -6,6 +6,30 @@ import { useLanguage } from "../context/LanguageContext";
 import { api } from "../services/api";
 import { FullPageSpinner } from "../components/Spinner";
 
+const formatLastSeen = (dateString, t, language) => {
+  if (!dateString) return language === "en" ? "Offline" : "ஆஃப்லைன்";
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInSeconds = Math.floor((now - date) / 1000);
+
+  if (diffInSeconds < 60) return language === "en" ? "Last seen just now" : "சற்று முன் பார்த்தார்";
+  if (diffInSeconds < 3600) {
+    const mins = Math.floor(diffInSeconds / 60);
+    return language === "en" ? `Last seen ${mins}m ago` : `${mins} நிமிடங்களுக்கு முன் பார்த்தார்`;
+  }
+  if (diffInSeconds < 86400) {
+    const hours = Math.floor(diffInSeconds / 3600);
+    return language === "en" ? `Last seen ${hours}h ago` : `${hours} மணி நேரத்திற்கு முன் பார்த்தார்`;
+  }
+  if (diffInSeconds < 172800) {
+    return language === "en" ? "Last seen yesterday" : "நேற்று பார்த்தார்";
+  }
+  
+  return language === "en" 
+    ? `Last seen ${date.toLocaleDateString()}` 
+    : `${date.toLocaleDateString()} அன்று பார்த்தார்`;
+};
+
 function Avatar({ name, online }) {
   return (
     <div className="relative shrink-0">
@@ -86,7 +110,8 @@ export default function Chat() {
   };
 
   const activeOther = active?.participants?.find((p) => p._id !== user.id);
-  const isOnline = presence[activeOther?._id];
+  const isOnline = presence[activeOther?._id]?.online;
+  const activeLastSeen = presence[activeOther?._id]?.lastSeenAt || activeOther?.lastSeenAt;
 
   if (loading) return <FullPageSpinner />;
 
@@ -116,7 +141,8 @@ export default function Chat() {
           ) : (
             chats.map((chat) => {
               const other = chat.participants.find((p) => p._id !== user.id);
-              const online = presence[other?._id];
+              const online = presence[other?._id]?.online;
+              const lastSeen = presence[other?._id]?.lastSeenAt || other?.lastSeenAt;
               const isActive = active?._id === chat._id;
               return (
                 <button
@@ -131,7 +157,13 @@ export default function Chat() {
                     <p className={`font-semibold truncate ${isActive ? "text-maroon-700" : "text-slate-900"}`}>
                       {other?.fullName}
                     </p>
-                    <p className="text-xs text-slate-400 mt-0.5">{online ? t("online") : t("offline")}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      {online ? (
+                        <span className="text-emerald-600 font-medium">{t("online")}</span>
+                      ) : (
+                        formatLastSeen(lastSeen, t, language)
+                      )}
+                    </p>
                   </div>
                 </button>
               );
@@ -155,7 +187,7 @@ export default function Chat() {
                   ) : isOnline ? (
                     <span className="text-emerald-600 font-medium">{t("online")}</span>
                   ) : (
-                    t("offline")
+                    formatLastSeen(activeLastSeen, t, language)
                   )}
                 </p>
               </div>

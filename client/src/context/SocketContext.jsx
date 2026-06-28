@@ -25,8 +25,8 @@ export const SocketProvider = ({ children }) => {
       reconnectionDelay: 3000
     });
 
-    nextSocket.on("presence:update", ({ userId, online }) => {
-      setPresence((current) => ({ ...current, [userId]: online }));
+    nextSocket.on("presence:update", ({ userId, online, lastSeenAt }) => {
+      setPresence((current) => ({ ...current, [userId]: { online, lastSeenAt } }));
     });
 
     nextSocket.on("connect_error", (err) => {

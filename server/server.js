@@ -148,8 +148,9 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", async () => {
     onlineUsers.delete(userId);
-    await User.findByIdAndUpdate(userId, { lastSeenAt: new Date() });
-    io.emit("presence:update", { userId, online: false });
+    const lastSeenAt = new Date();
+    await User.findByIdAndUpdate(userId, { lastSeenAt });
+    io.emit("presence:update", { userId, online: false, lastSeenAt });
   });
 });
 
