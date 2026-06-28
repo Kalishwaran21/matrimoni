@@ -682,38 +682,6 @@ export default function Profile() {
             </select>
           </label>
           <label className="flex flex-col gap-1.5">
-            <span className="label">{t("fieldFamilyValue")} *</span>
-            <select
-              className="field mt-1"
-              required
-              disabled={!isEditMode}
-              value={form.family?.familyValues || ""}
-              onChange={(e) => update("family", "familyValues", e.target.value)}
-            >
-              <option value="">Select Values</option>
-              <option value="Orthodox">{t("Orthodox")}</option>
-              <option value="Traditional">{t("Traditional")}</option>
-              <option value="Moderate">{t("Moderate")}</option>
-              <option value="Liberal">{t("Liberal")}</option>
-            </select>
-          </label>
-          <label className="flex flex-col gap-1.5">
-            <span className="label">{t("fieldFamilyStatus")} *</span>
-            <select
-              className="field mt-1"
-              required
-              disabled={!isEditMode}
-              value={form.family?.familyStatus || ""}
-              onChange={(e) => update("family", "familyStatus", e.target.value)}
-            >
-              <option value="">Select Status</option>
-              <option value="Middle Class">{t("Middle Class")}</option>
-              <option value="Upper Middle Class">{t("Upper Middle Class")}</option>
-              <option value="Rich">{t("Rich")}</option>
-              <option value="Affluent">{t("Affluent")}</option>
-            </select>
-          </label>
-          <label className="flex flex-col gap-1.5">
             <span className="label">{t("fieldFatherJob")}</span>
             <input
               className="field mt-1"
@@ -748,6 +716,7 @@ export default function Profile() {
           </label>
         </div>
       </section>
+
 
       {/* ── SECTION 8: Horoscope Details ── */}
       <section className="panel">
