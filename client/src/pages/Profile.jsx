@@ -132,7 +132,7 @@ export default function Profile() {
       const { data } = await api.post("/profile", formData, {
         headers: { "Content-Type": "multipart/form-data" }
       });
-      updateUser(data.user);
+      updateUser({ ...data.user });
       setForm((cur) => {
         const next = { ...cur };
         TABS.forEach((s) => {

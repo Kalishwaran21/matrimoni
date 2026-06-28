@@ -16,6 +16,8 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem("soulmate_token");
       localStorage.removeItem("soulmate_user");
+      // Dispatch event so AuthContext can update React state
+      window.dispatchEvent(new Event("soulmate:logout"));
     }
     return Promise.reject(error);
   }

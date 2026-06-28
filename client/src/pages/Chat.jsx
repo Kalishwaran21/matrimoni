@@ -191,8 +191,8 @@ export default function Chat() {
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 onKeyDown={handleKey}
-                onFocus={() => socket.emit("typing", { to: activeOther._id, isTyping: true })}
-                onBlur={() => socket.emit("typing", { to: activeOther._id, isTyping: false })}
+                onFocus={() => activeOther && socket?.emit("typing", { to: activeOther._id, isTyping: true })}
+                onBlur={() => activeOther && socket?.emit("typing", { to: activeOther._id, isTyping: false })}
               />
               <button
                 id="chat-send"

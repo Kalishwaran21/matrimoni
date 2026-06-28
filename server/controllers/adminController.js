@@ -17,7 +17,7 @@ const completionFields = [
   "location.city",
   "education.degree",
   "career.jobTitle",
-  "family.fatherOccupation",
+  "family.familyType",
   "horoscope.rasi"
 ];
 

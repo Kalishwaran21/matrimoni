@@ -13,8 +13,7 @@ const completionFields = [
   "location.city",
   "education.degree",
   "career.jobTitle",
-  "family.fatherOccupation",
-  "lifestyle.foodType",
+  "family.familyType",
   "horoscope.rasi"
 ];
 
@@ -37,7 +36,7 @@ const uploadBuffer = (file) =>
 
 export const upsertProfile = async (req, res, next) => {
   try {
-    const updates = typeof req.body.profile === "string" ? JSON.parse(req.body.profile) : req.body;
+    const updates = typeof req.body.updates === "string" ? JSON.parse(req.body.updates) : req.body;
     const photos = [];
 
     if (req.files?.length) {
@@ -52,19 +51,25 @@ export const upsertProfile = async (req, res, next) => {
     }
 
     const existing = await Profile.findOne({ user: req.user._id });
-    const currentPhotos = updates.photos !== undefined ? updates.photos : (existing?.photos || []);
+    // Guard: updates.photos can be {} (object) from the form state — only use it if it's a real array
+    const currentPhotos = Array.isArray(updates.photos) ? updates.photos : (existing?.photos || []);
+    // Strip the photos key from updates so it doesn't overwrite our merged array
+    delete updates.photos;
     const mergedPhotos = [...currentPhotos, ...photos];
     const isApproved = existing ? existing.isApproved : false;
     const profile = await Profile.findOneAndUpdate(
       { user: req.user._id },
-      { ...updates, user: req.user._id, photos: mergedPhotos, isApproved },
+      { ...updates, user: req.user._id, photos: mergedPhotos, isApproved, isSubmitted: true },
       { new: true, upsert: true, runValidators: true }
     );
 
     profile.completionScore = calculateCompletion(profile);
     await profile.save();
 
-    res.status(existing ? 200 : 201).json({ profile });
+    res.status(existing ? 200 : 201).json({ 
+      profile, 
+      user: { isProfileSubmitted: true, isProfileApproved: profile.isApproved } 
+    });
   } catch (error) {
     next(error);
   }

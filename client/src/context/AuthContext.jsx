@@ -20,8 +20,20 @@ export const AuthProvider = ({ children }) => {
         setUser(data.user);
         localStorage.setItem("soulmate_user", JSON.stringify(data.user));
       })
-      .catch(() => logout());
+      .catch(() => {
+        localStorage.removeItem("soulmate_token");
+        localStorage.removeItem("soulmate_user");
+        setToken(null);
+        setUser(null);
+      });
   }, [token]);
+
+  // Listen for global logout event fired by the axios 401 interceptor
+  useEffect(() => {
+    const handle = () => { setToken(null); setUser(null); };
+    window.addEventListener("soulmate:logout", handle);
+    return () => window.removeEventListener("soulmate:logout", handle);
+  }, []);
 
   const persist = (data) => {
     localStorage.setItem("soulmate_token", data.token);
