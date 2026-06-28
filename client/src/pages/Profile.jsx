@@ -9,7 +9,7 @@ import { DATA } from "../utils/constants";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 
-const TABS = ["basic", "religion", "location", "education", "career", "family", "horoscope", "assets", "about", "photos", "preferences"];
+const TABS = ["basic", "religion", "location", "education", "career", "family", "contact", "horoscope", "assets", "about", "photos", "preferences"];
 const initial = Object.fromEntries(TABS.map((s) => [s, s === "about" ? "" : {}]));
 
 export default function Profile() {
@@ -718,7 +718,51 @@ export default function Profile() {
       </section>
 
 
-      {/* ── SECTION 8: Horoscope Details ── */}
+      {/* ── SECTION 8: Contact Details ── */}
+      <section className="panel">
+        <h2 className="mb-5 text-xl font-black text-maroon-800 flex items-center gap-2">
+          <span>📞</span> {language === "en" ? "Contact Details" : "தொடர்பு விவரங்கள்"}
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <label className="flex flex-col gap-1.5">
+            <span className="label">{language === "en" ? "Phone Number" : "தொலைபேசி எண்"} *</span>
+            <input
+              className="field mt-1"
+              type="tel"
+              required
+              disabled={!isEditMode}
+              value={form.contact?.phone || ""}
+              onChange={(e) => update("contact", "phone", e.target.value)}
+              placeholder="9876543210"
+            />
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="label">{language === "en" ? "Email Address" : "மின்னஞ்சல்"} *</span>
+            <input
+              className="field mt-1"
+              type="email"
+              required
+              disabled={!isEditMode}
+              value={form.contact?.email || ""}
+              onChange={(e) => update("contact", "email", e.target.value)}
+              placeholder="example@mail.com"
+            />
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="label">{language === "en" ? "Alternate Phone" : "மாற்று தொலைபேசி எண்"}</span>
+            <input
+              className="field mt-1"
+              type="tel"
+              disabled={!isEditMode}
+              value={form.contact?.altPhone || ""}
+              onChange={(e) => update("contact", "altPhone", e.target.value)}
+              placeholder="9876543211"
+            />
+          </label>
+        </div>
+      </section>
+
+      {/* ── SECTION 9: Horoscope Details ── */}
       <section className="panel">
         <h2 className="mb-5 text-xl font-black text-maroon-800 flex items-center gap-2">
           <span>✨</span> {t("secHoroscope")}

@@ -14,6 +14,8 @@ const completionFields = [
   "education.degree",
   "career.jobTitle",
   "family.familyType",
+  "contact.phone",
+  "contact.email",
   "horoscope.rasi"
 ];
 
