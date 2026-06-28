@@ -1,5 +1,5 @@
 import express from "express";
-import { analytics, dashboard, listUsers, reports, toggleUserBlock, listPendingApprovals, approveProfile, createClientProfile, getClientInterests, respondClientInterest } from "../controllers/adminController.js";
+import { analytics, dashboard, listUsers, reports, toggleUserBlock, listPendingApprovals, approveProfile, createClientProfile, getClientInterests, respondClientInterest, getAdminCreatedProfiles } from "../controllers/adminController.js";
 import { adminOnly, protect } from "../middleware/auth.js";
 import { upload } from "../middleware/upload.js";
 
@@ -11,6 +11,7 @@ router.get("/users", listUsers);
 router.post("/users/create", upload.array("photos", 6), createClientProfile);
 router.get("/client-interests", getClientInterests);
 router.post("/client-interests/respond", respondClientInterest);
+router.get("/created-profiles", getAdminCreatedProfiles);
 router.patch("/users/:id/block", toggleUserBlock);
 router.get("/reports", reports);
 router.get("/analytics", analytics);

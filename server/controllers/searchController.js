@@ -30,11 +30,11 @@ export const searchProfiles = async (req, res, next) => {
     const salaryMin = numberFilter(req.query.salaryMin);
 
     if (ageMin || ageMax) query["basic.age"] = { ...(ageMin && { $gte: ageMin }), ...(ageMax && { $lte: ageMax }) };
-    if (req.query.religion) query["religion.religion"] = req.query.religion;
-    if (req.query.caste) query["religion.caste"] = req.query.caste;
-    if (req.query.city) query["location.city"] = req.query.city;
-    if (req.query.education) query["education.degree"] = new RegExp(req.query.education, "i");
-    if (req.query.job) query["career.jobTitle"] = new RegExp(req.query.job, "i");
+    if (req.query.religion && req.query.religion !== "Any") query["religion.religion"] = req.query.religion;
+    if (req.query.caste && req.query.caste !== "Any") query["religion.caste"] = req.query.caste;
+    if (req.query.city && req.query.city !== "Any") query["location.city"] = req.query.city;
+    if (req.query.education && req.query.education !== "Any") query["education.degree"] = new RegExp(req.query.education, "i");
+    if (req.query.job && req.query.job !== "Any") query["career.jobTitle"] = new RegExp(req.query.job, "i");
     if (salaryMin) query["career.salary"] = { $gte: salaryMin };
 
     const current = await Profile.findOne({ user: req.user._id });

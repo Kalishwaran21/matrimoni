@@ -179,6 +179,18 @@ export const createClientProfile = async (req, res, next) => {
   }
 };
 
+export const getAdminCreatedProfiles = async (req, res, next) => {
+  try {
+    const profiles = await Profile.find({ createdByAdmin: true })
+      .populate("user", "fullName email mobile gender isPremium")
+      .sort({ createdAt: -1 });
+
+    res.json({ profiles });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getClientInterests = async (req, res, next) => {
   try {
     const adminCreatedProfiles = await Profile.find({ createdByAdmin: true }).select("user");
