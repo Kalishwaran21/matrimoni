@@ -8,7 +8,7 @@ const setTokenCookie = (res, token) => {
   res.cookie("jwt", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV !== "development",
-    sameSite: "strict",
+    sameSite: process.env.NODE_ENV !== "development" ? "none" : "strict",
     maxAge: 7 * 24 * 60 * 60 * 1000
   });
 };
@@ -85,12 +85,18 @@ export const me = async (req, res) => {
   res.json({ user: userPayload(req.user, isSubmitted, isApproved) });
 };
 
-export const logout = (req, res) => {
-  res.cookie("jwt", "", {
-    httpOnly: true,
-    expires: new Date(0)
-  });
-  res.json({ message: "Logged out successfully" });
+export const logout = async (req, res, next) => {
+  try {
+    res.cookie("jwt", "", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV !== "development",
+      sameSite: process.env.NODE_ENV !== "development" ? "none" : "strict",
+      expires: new Date(0)
+    });
+    res.status(200).json({ message: "Logged out successfully" });
+  } catch (error) {
+    next(error);
+  }
 };
 
 export const forgotPassword = async (req, res, next) => {

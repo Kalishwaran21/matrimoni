@@ -5,6 +5,7 @@ import { CardSkeleton } from "../components/Spinner";
 import { toast } from "../components/Toast";
 import { api } from "../services/api";
 import { useLanguage } from "../context/LanguageContext";
+import { formatName } from "../utils/transliterate";
 
 export default function SearchMatches() {
   const { t, language } = useLanguage();
