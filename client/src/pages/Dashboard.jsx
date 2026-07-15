@@ -5,9 +5,12 @@ import StatCard from "../components/StatCard";
 import { FullPageSpinner } from "../components/Spinner";
 import { api } from "../services/api";
 import { useAuth } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
+import { formatName } from "../utils/transliterate";
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const { t, language } = useLanguage();
   const [profile, setProfile] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -27,10 +30,10 @@ export default function Dashboard() {
   const completionScore = profile?.completionScore || 0;
 
   const stats = [
-    { label: "Profile Score", value: `${completionScore}%`, icon: Star, color: completionScore >= 70 ? "emerald" : "amber" },
-    { label: "Notifications", value: unread, icon: Bell, color: unread > 0 ? "maroon" : "blue" },
-    { label: "Match Search", value: "Live", icon: Search, color: "blue" },
-    { label: "Interests", value: "Ready", icon: HeartHandshake, color: "emerald" }
+    { label: t("dashStatProfileScore"), value: `${completionScore}%`, icon: Star, color: completionScore >= 70 ? "emerald" : "amber" },
+    { label: t("dashStatNotif"), value: unread, icon: Bell, color: unread > 0 ? "maroon" : "blue" },
+    { label: t("dashStatSearch"), value: t("dashStatSearchVal"), icon: Search, color: "blue" },
+    { label: t("dashStatInterests"), value: t("dashStatInterestsVal"), icon: HeartHandshake, color: "emerald" }
   ];
 
   if (loading) return <FullPageSpinner />;
@@ -40,15 +43,15 @@ export default function Dashboard() {
       {/* Header */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <p className="label">Dashboard</p>
+          <p className="label">{t("dashHeroTag")}</p>
           <h1 className="mt-2 text-3xl font-black text-slate-950">
-            Welcome back,{" "}
-            <span className="text-maroon-700">{user?.fullName?.split(" ")[0] || "there"}!</span>
+            {t("dashHeroTitle")}{" "}
+            <span className="text-maroon-700">{formatName(user?.fullName?.split(" ")[0], language)}!</span>
           </h1>
         </div>
         {!profile && (
           <Link to="/profile" className="btn-primary shrink-0">
-            <UserRound size={16} /> Complete Profile
+            <UserRound size={16} /> {t("dashCompleteBtn")}
           </Link>
         )}
       </div>
@@ -59,12 +62,12 @@ export default function Dashboard() {
           <div className="flex items-center gap-3">
             <TrendingUp size={20} className="text-amber-600 shrink-0" />
             <div>
-              <p className="font-semibold text-amber-900">Profile {completionScore}% complete</p>
-              <p className="text-sm text-amber-700">Complete your profile to get more matches!</p>
+              <p className="font-semibold text-amber-900">{t("dashProfileStatusDesc").replace("!", "")} - {completionScore}%</p>
+              <p className="text-sm text-amber-700">{t("dashProfileStatusDesc")}</p>
             </div>
           </div>
           <Link to="/profile" className="shrink-0 rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-700 transition-colors">
-            Update
+            {t("dashUpdateBtn")}
           </Link>
         </div>
       )}
@@ -73,7 +76,7 @@ export default function Dashboard() {
       {profile && (
         <div className="panel">
           <div className="flex items-center justify-between mb-3">
-            <p className="font-semibold text-slate-800">Profile Completion</p>
+            <p className="font-semibold text-slate-800">{t("dashProfileComp")}</p>
             <span className="badge-maroon">{completionScore}%</span>
           </div>
           <div className="match-bar-track h-3">
@@ -83,8 +86,8 @@ export default function Dashboard() {
             />
           </div>
           <div className="mt-2 flex justify-between text-xs text-slate-400">
-            <span>Getting started</span>
-            <span>Complete ✓</span>
+            <span>{t("dashGettingStarted")}</span>
+            <span>{t("dashCompleteTick")}</span>
           </div>
         </div>
       )}
@@ -99,9 +102,9 @@ export default function Dashboard() {
       {/* Quick actions */}
       <div className="grid gap-4 sm:grid-cols-3">
         {[
-          { label: "Find Matches", icon: Search, href: "/matches", desc: "Browse partner profiles" },
-          { label: "View Interests", icon: HeartHandshake, href: "/interests", desc: "Manage sent & received" },
-          { label: "Open Chat", icon: MessageCircle, href: "/chat", desc: "Talk to accepted matches" }
+          { label: t("dashActionSearchTitle"), icon: Search, href: "/matches", desc: t("dashActionSearchDesc") },
+          { label: t("dashActionInterestsTitle"), icon: HeartHandshake, href: "/interests", desc: t("dashActionInterestsDesc") },
+          { label: t("dashActionChatTitle"), icon: MessageCircle, href: "/chat", desc: t("dashActionChatDesc") }
         ].map(({ label, icon: Icon, href, desc }) => (
           <Link
             key={label}
@@ -122,8 +125,8 @@ export default function Dashboard() {
       {/* Notifications */}
       <section className="panel">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-xl font-black text-slate-950">Recent Notifications</h2>
-          {unread > 0 && <span className="badge-maroon">{unread} new</span>}
+          <h2 className="text-xl font-black text-slate-950">{t("dashNotifTitle")}</h2>
+          {unread > 0 && <span className="badge-maroon">{unread} {t("dashNotifNew")}</span>}
         </div>
         <div className="grid gap-3">
           {notifications.slice(0, 6).map((item) => (
@@ -143,7 +146,7 @@ export default function Dashboard() {
           ))}
           {!notifications.length && (
             <p className="text-center py-8 text-sm text-slate-400">
-              No notifications yet — start exploring matches!
+              {t("dashNotifEmpty")}
             </p>
           )}
         </div>

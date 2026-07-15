@@ -5,15 +5,13 @@ import { api } from "../services/api";
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [token, setToken] = useState(() => localStorage.getItem("soulmate_token"));
   const [user, setUser] = useState(() => {
     const stored = localStorage.getItem("soulmate_user");
     return stored ? JSON.parse(stored) : null;
   });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!token) return;
     api
       .get("/auth/me")
       .then(({ data }) => {
@@ -21,24 +19,23 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem("soulmate_user", JSON.stringify(data.user));
       })
       .catch(() => {
-        localStorage.removeItem("soulmate_token");
         localStorage.removeItem("soulmate_user");
-        setToken(null);
         setUser(null);
+      })
+      .finally(() => {
+        setLoading(false);
       });
-  }, [token]);
+  }, []);
 
   // Listen for global logout event fired by the axios 401 interceptor
   useEffect(() => {
-    const handle = () => { setToken(null); setUser(null); };
+    const handle = () => { setUser(null); localStorage.removeItem("soulmate_user"); };
     window.addEventListener("soulmate:logout", handle);
     return () => window.removeEventListener("soulmate:logout", handle);
   }, []);
 
   const persist = (data) => {
-    localStorage.setItem("soulmate_token", data.token);
     localStorage.setItem("soulmate_user", JSON.stringify(data.user));
-    setToken(data.token);
     setUser(data.user);
   };
 
@@ -64,11 +61,15 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem("soulmate_token");
-    localStorage.removeItem("soulmate_user");
-    setToken(null);
-    setUser(null);
+  const logout = async () => {
+    try {
+      await api.post("/auth/logout");
+    } catch (err) {
+      console.error("Logout error", err);
+    } finally {
+      localStorage.removeItem("soulmate_user");
+      setUser(null);
+    }
   };
 
   const updateUser = (fields) => {
@@ -80,7 +81,7 @@ export const AuthProvider = ({ children }) => {
     });
   };
 
-  const value = useMemo(() => ({ token, user, loading, login, register, logout, updateUser }), [token, user, loading]);
+  const value = useMemo(() => ({ user, loading, login, register, logout, updateUser }), [user, loading]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

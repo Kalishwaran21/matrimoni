@@ -6,14 +6,19 @@ import { api } from "../services/api";
 import { toast } from "../components/Toast";
 import { FullPageSpinner } from "../components/Spinner";
 import { useAuth } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
+import { formatName } from "../utils/transliterate";
 
 const labelize = (v) => v.replace(/([A-Z])/g, " $1").replace(/^./, (l) => l.toUpperCase());
+const getFieldKey = (key) => `field${key.charAt(0).toUpperCase() + key.slice(1)}`;
 
 export default function ProfileDetail() {
   const { id } = useParams();
   const { user: currentUser } = useAuth();
+  const { t, language } = useLanguage();
   const [profile, setProfile] = useState(null);
   const [isContactShared, setIsContactShared] = useState(false);
+  const [limitExceeded, setLimitExceeded] = useState(false);
   const [interest, setInterest] = useState(null);
   const [sending, setSending] = useState(false);
 
@@ -21,6 +26,7 @@ export default function ProfileDetail() {
     api.get(`/profile/${id}`).then(({ data }) => {
       setProfile(data.profile);
       setIsContactShared(data.isContactShared);
+      setLimitExceeded(data.limitExceeded);
       setInterest(data.interest);
     }).catch((err) => {
       toast.error(err.response?.data?.message || "Could not load profile.");
@@ -74,8 +80,10 @@ export default function ProfileDetail() {
 
   if (!profile) return <FullPageSpinner />;
 
-  const name = profile.basic?.name || profile.user?.fullName || "Profile";
-  const allPhotos = profile.photos || [];
+  const rawName = profile.basic?.name || profile.user?.fullName || "Anonymous";
+  const name = formatName(rawName, language);
+  const isOwnProfile = profile.user?._id === currentUser?._id;
+  const allPhotos = profile.photo ? [profile.photo] : [];
 
   return (
     <div className="grid gap-6 animate-fade-up">
@@ -130,8 +138,8 @@ export default function ProfileDetail() {
               </span>
               <span className="flex items-center gap-2">
                 <Heart size={15} className="text-maroon-400" />
-                {profile.religion?.religion || "Religion not set"}
-                {profile.religion?.caste ? ` · ${profile.religion.caste}` : ""}
+                {profile.religion?.religion ? t(profile.religion.religion) : "Religion not set"}
+                {profile.religion?.caste ? ` · ${t(profile.religion.caste)}` : ""}
               </span>
             </div>
 
@@ -226,12 +234,12 @@ export default function ProfileDetail() {
         if (!entries.length) return null;
         return (
           <section key={section} className="panel">
-            <h2 className="mb-5 text-xl font-black capitalize text-maroon-800">{section}</h2>
+            <h2 className="mb-5 text-xl font-black capitalize text-maroon-800">{section === "basic" ? t("secBasic") : section === "religion" ? t("secReligion") : section === "career" ? t("secCareer") : section === "family" ? t("secFamily") : t("secAssets")}</h2>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {entries.map(([key, value]) => (
                 <div key={key} className="rounded-xl bg-rose-50 px-4 py-3 border border-rose-100">
-                  <p className="label text-rose-400">{labelize(key)}</p>
-                  <p className="mt-1 font-semibold text-slate-800">{String(value)}</p>
+                  <p className="label text-rose-400">{t(getFieldKey(key)) !== getFieldKey(key) ? t(getFieldKey(key)) : labelize(key)}</p>
+                  <p className="mt-1 font-semibold text-slate-800">{t(String(value))}</p>
                 </div>
               ))}
             </div>
@@ -252,13 +260,26 @@ export default function ProfileDetail() {
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {entries.map(([key, value]) => (
                   <div key={key} className="rounded-xl bg-rose-50 px-4 py-3 border border-rose-100">
-                    <p className="label text-rose-400">{labelize(key)}</p>
-                    <p className="mt-1 font-semibold text-slate-800">{String(value)}</p>
+                    <p className="label text-rose-400">{t(getFieldKey(key)) !== getFieldKey(key) ? t(getFieldKey(key)) : labelize(key)}</p>
+                    <p className="mt-1 font-semibold text-slate-800">{t(String(value))}</p>
                   </div>
                 ))}
               </div>
             );
           })()
+        ) : limitExceeded ? (
+          <div className="flex flex-col items-center justify-center rounded-xl bg-amber-50/50 border border-dashed border-amber-200 py-8 px-4 text-center">
+            <span className="mb-3 grid h-12 w-12 place-items-center rounded-full bg-amber-100 text-amber-600 shadow-soft">
+              <Lock size={20} />
+            </span>
+            <p className="font-semibold text-slate-800">Daily Limit Reached</p>
+            <p className="mt-1 mb-4 text-sm text-slate-500 max-w-sm">
+              You cannot see this, you have reached your daily limit.
+            </p>
+            <Link to="/subscription" className="btn-primary">
+              Upgrade Plan
+            </Link>
+          </div>
         ) : (
           <div className="flex flex-col items-center justify-center rounded-xl bg-rose-50/50 border border-dashed border-rose-200 py-8 px-4 text-center">
             <span className="mb-3 grid h-12 w-12 place-items-center rounded-full bg-maroon-50 text-maroon-600 shadow-soft animate-pulse-ring">
@@ -295,6 +316,19 @@ export default function ProfileDetail() {
                 <p className="mt-0.5 font-semibold text-slate-800">{profile.user?.mobile || "Not provided"}</p>
               </div>
             </div>
+          </div>
+        ) : limitExceeded ? (
+          <div className="flex flex-col items-center justify-center rounded-xl bg-amber-50/50 border border-dashed border-amber-200 py-8 px-4 text-center">
+            <span className="mb-3 grid h-12 w-12 place-items-center rounded-full bg-amber-100 text-amber-600 shadow-soft">
+              <Lock size={20} />
+            </span>
+            <p className="font-semibold text-slate-800">Daily Limit Reached</p>
+            <p className="mt-1 mb-4 text-sm text-slate-500 max-w-sm">
+              You cannot see this, you have reached your daily limit.
+            </p>
+            <Link to="/subscription" className="btn-primary">
+              Upgrade Plan
+            </Link>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center rounded-xl bg-rose-50/50 border border-dashed border-rose-200 py-8 px-4 text-center">

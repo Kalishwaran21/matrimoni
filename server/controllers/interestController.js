@@ -2,11 +2,38 @@ import Interest from "../models/Interest.js";
 import Notification from "../models/Notification.js";
 import Profile from "../models/Profile.js";
 import Chat from "../models/Chat.js";
+import Subscription from "../models/Subscription.js";
+
+const PLAN_INTEREST_LIMITS = {
+  Free: 5,
+  Silver: 10,
+  Gold: 15,
+  Diamond: Infinity
+};
 
 export const sendInterest = async (req, res, next) => {
   try {
     if (String(req.body.to) === String(req.user._id)) {
       return res.status(400).json({ message: "Cannot send interest to yourself" });
+    }
+
+    // Check daily limits
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const todayCount = await Interest.countDocuments({
+      from: req.user._id,
+      createdAt: { $gte: startOfDay }
+    });
+
+    const activeSub = await Subscription.findOne({ user: req.user._id, status: "Active" }).sort("-createdAt");
+    const userPlan = activeSub ? activeSub.plan : "Free";
+    const limit = PLAN_INTEREST_LIMITS[userPlan] || PLAN_INTEREST_LIMITS.Free;
+
+    if (todayCount >= limit) {
+      return res.status(403).json({ 
+        message: `You have reached your daily limit of ${limit} interests for the ${userPlan} plan. Please upgrade for more.` 
+      });
     }
 
     const interest = await Interest.create({ from: req.user._id, to: req.body.to });

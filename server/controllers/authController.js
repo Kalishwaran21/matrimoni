@@ -4,6 +4,15 @@ import User from "../models/User.js";
 import Profile from "../models/Profile.js";
 import { signToken } from "../middleware/auth.js";
 
+const setTokenCookie = (res, token) => {
+  res.cookie("jwt", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV !== "development",
+    sameSite: "strict",
+    maxAge: 7 * 24 * 60 * 60 * 1000
+  });
+};
+
 const userPayload = (user, isProfileSubmitted = false, isProfileApproved = false) => ({
   id: user._id,
   fullName: user.fullName,
@@ -38,8 +47,9 @@ export const register = async (req, res, next) => {
 
     const user = await User.create(req.body);
     const token = signToken(user._id);
+    setTokenCookie(res, token);
 
-    res.status(201).json({ token, user: userPayload(user) });
+    res.status(201).json({ user: userPayload(user) });
   } catch (error) {
     next(error);
   }
@@ -59,7 +69,10 @@ export const login = async (req, res, next) => {
     const isSubmitted = profile ? profile.isSubmitted : false;
     const isApproved = profile ? profile.isApproved : false;
 
-    res.json({ token: signToken(user._id), user: userPayload(user, isSubmitted, isApproved) });
+    const token = signToken(user._id);
+    setTokenCookie(res, token);
+
+    res.json({ user: userPayload(user, isSubmitted, isApproved) });
   } catch (error) {
     next(error);
   }
@@ -70,6 +83,14 @@ export const me = async (req, res) => {
   const isSubmitted = profile ? profile.isSubmitted : false;
   const isApproved = profile ? profile.isApproved : false;
   res.json({ user: userPayload(req.user, isSubmitted, isApproved) });
+};
+
+export const logout = (req, res) => {
+  res.cookie("jwt", "", {
+    httpOnly: true,
+    expires: new Date(0)
+  });
+  res.json({ message: "Logged out successfully" });
 };
 
 export const forgotPassword = async (req, res, next) => {

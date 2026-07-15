@@ -5,6 +5,7 @@ import { api } from "../services/api";
 import { FullPageSpinner } from "../components/Spinner";
 import { toast } from "../components/Toast";
 import { useLanguage } from "../context/LanguageContext";
+import { formatName } from "../utils/transliterate";
 
 export default function Interests() {
   const { t, language } = useLanguage();
@@ -191,7 +192,7 @@ export default function Interests() {
             const city = personProfile?.location?.city || "";
 
             const details = [age, height, religion, caste, job, salary, city].filter(Boolean).join(" · ");
-            const photoUrl = personProfile?.photos?.[0]?.url;
+            const photoUrl = personProfile?.photo?.url;
             const profileId = `M${(person?._id || "").substring(18).toUpperCase()}`;
 
             const formattedDate = new Date(item.createdAt).toLocaleDateString(language === "en" ? "en-IN" : "ta-IN", {
@@ -219,14 +220,14 @@ export default function Interests() {
                       />
                     ) : (
                       <span className="text-4xl font-black text-maroon-200 select-none group-hover:scale-110 transition duration-300">
-                        {(person?.fullName || "?").charAt(0).toUpperCase()}
+                        {formatName((person?.fullName || "?").charAt(0).toUpperCase(), language)}
                       </span>
                     )}
                   </Link>
                 ) : (
                   <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-xl border border-rose-100 bg-rose-50 flex items-center justify-center">
                     <span className="text-4xl font-black text-maroon-200 select-none">
-                      {(person?.fullName || "?").charAt(0).toUpperCase()}
+                      {formatName((person?.fullName || "?").charAt(0).toUpperCase(), language)}
                     </span>
                   </div>
                 )}
@@ -240,10 +241,10 @@ export default function Interests() {
                           to={`/profile/${personProfile._id}`}
                           className="text-lg font-black text-slate-950 hover:text-maroon-700 transition"
                         >
-                          {person?.fullName || "Unknown"}
+                          {formatName(person?.fullName || "Unknown", language)}
                         </Link>
                       ) : (
-                        <h3 className="text-lg font-black text-slate-950">{person?.fullName || "Unknown"}</h3>
+                        <h3 className="text-lg font-black text-slate-950">{formatName(person?.fullName || "Unknown", language)}</h3>
                       )}
                       {personProfile?.isApproved && (
                         <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-black text-emerald-600 border border-emerald-100">

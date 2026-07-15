@@ -2,6 +2,16 @@ import cloudinary from "../config/cloudinary.js";
 import Profile from "../models/Profile.js";
 import Interest from "../models/Interest.js";
 import Notification from "../models/Notification.js";
+import Subscription from "../models/Subscription.js";
+import DailyUsage from "../models/DailyUsage.js";
+import User from "../models/User.js";
+
+const PLAN_VIEW_LIMITS = {
+  Free: 0,
+  Silver: 0,
+  Gold: 5,
+  Diamond: 20
+};
 
 const completionFields = [
   "basic.name",
@@ -24,7 +34,7 @@ const getByPath = (source, path) => path.split(".").reduce((obj, key) => obj?.[k
 
 const calculateCompletion = (profile) => {
   const filled = completionFields.filter((path) => Boolean(getByPath(profile, path))).length;
-  const photoScore = profile.photos?.length ? 1 : 0;
+  const photoScore = profile.photo?.url ? 1 : 0;
   return Math.round(((filled + photoScore) / (completionFields.length + 1)) * 100);
 };
 
@@ -40,38 +50,58 @@ const uploadBuffer = (file) =>
 export const upsertProfile = async (req, res, next) => {
   try {
     const updates = typeof req.body.updates === "string" ? JSON.parse(req.body.updates) : req.body;
-    const photos = [];
+    let newPhoto = undefined;
 
-    if (req.files?.length) {
+    if (req.file) {
       if (!process.env.CLOUDINARY_CLOUD_NAME) {
         return res.status(503).json({ message: "Cloudinary is not configured" });
       }
-
-      for (const file of req.files) {
-        const result = await uploadBuffer(file);
-        photos.push({ url: result.secure_url, publicId: result.public_id });
-      }
+      const result = await uploadBuffer(req.file);
+      newPhoto = { url: result.secure_url, publicId: result.public_id };
     }
 
     const existing = await Profile.findOne({ user: req.user._id });
-    // Guard: updates.photos can be {} (object) from the form state — only use it if it's a real array
-    const currentPhotos = Array.isArray(updates.photos) ? updates.photos : (existing?.photos || []);
-    // Strip the photos key from updates so it doesn't overwrite our merged array
-    delete updates.photos;
-    const mergedPhotos = [...currentPhotos, ...photos];
+    
+    // If the user uploaded a new photo and they already had one, delete the old one
+    if (newPhoto && existing && existing.photo?.publicId) {
+       try {
+         await cloudinary.uploader.destroy(existing.photo.publicId);
+       } catch (err) {
+         console.error("Failed to delete from Cloudinary", err);
+       }
+    }
+    
+    // Keep existing photo if no new photo uploaded
+    const finalPhoto = newPhoto || (existing ? existing.photo : undefined);
+
     const isApproved = existing ? existing.isApproved : false;
     const profile = await Profile.findOneAndUpdate(
       { user: req.user._id },
-      { ...updates, user: req.user._id, photos: mergedPhotos, isApproved, isSubmitted: true },
+      { ...updates, user: req.user._id, photo: finalPhoto, isApproved, isSubmitted: true },
       { new: true, upsert: true, runValidators: true }
     );
+
+    let userUpdate = { isProfileSubmitted: true, isProfileApproved: profile.isApproved };
+    
+    // Sync Name and Gender changes back to the User model
+    if (updates.basic?.name || updates.basic?.gender) {
+      const u = {};
+      if (updates.basic?.name) u.fullName = updates.basic.name;
+      if (updates.basic?.gender) u.gender = updates.basic.gender;
+      
+      const updatedUser = await User.findByIdAndUpdate(req.user._id, u, { new: true });
+      if (updatedUser) {
+        userUpdate.fullName = updatedUser.fullName;
+        userUpdate.gender = updatedUser.gender;
+      }
+    }
 
     profile.completionScore = calculateCompletion(profile);
     await profile.save();
 
     res.status(existing ? 200 : 201).json({ 
       profile, 
-      user: { isProfileSubmitted: true, isProfileApproved: profile.isApproved } 
+      user: userUpdate 
     });
   } catch (error) {
     next(error);
@@ -89,21 +119,47 @@ export const getProfile = async (req, res, next) => {
     const isAdmin = req.user.role === "admin";
 
     let isContactShared = false;
+    let limitExceeded = false;
     let interest = null;
 
-    if (isOwnProfile || isAdmin || req.user.isPremium) {
-      isContactShared = true;
-    } else {
-      // Find interest between the two users
+    if (!isOwnProfile && !isAdmin) {
       interest = await Interest.findOne({
         $or: [
           { from: req.user._id, to: profile.user._id },
           { from: profile.user._id, to: req.user._id }
         ]
       });
+    }
 
-      if (interest && interest.status === "Accepted") {
+    if (isOwnProfile || isAdmin || (interest && interest.status === "Accepted")) {
+      isContactShared = true;
+    } else {
+      // Check Daily Usage for views
+      const today = new Date().toISOString().split("T")[0];
+      let usage = await DailyUsage.findOne({ user: req.user._id, date: today });
+      if (!usage) {
+        usage = await DailyUsage.create({ user: req.user._id, date: today, profilesViewed: [] });
+      }
+
+      const activeSub = await Subscription.findOne({ user: req.user._id, status: "Active" }).sort("-createdAt");
+      const userPlan = activeSub ? activeSub.plan : "Free";
+      const viewLimit = PLAN_VIEW_LIMITS[userPlan] || PLAN_VIEW_LIMITS.Free;
+
+      const targetIdStr = String(profile.user._id);
+      const alreadyViewed = usage.profilesViewed.some(id => String(id) === targetIdStr);
+
+      if (alreadyViewed) {
         isContactShared = true;
+      } else {
+        if (usage.profilesViewed.length >= viewLimit) {
+          limitExceeded = true;
+          isContactShared = false;
+        } else {
+          // Has limit, allow and record
+          usage.profilesViewed.push(profile.user._id);
+          await usage.save();
+          isContactShared = true;
+        }
       }
 
       // Add Profile Viewed Notification
@@ -128,7 +184,7 @@ export const getProfile = async (req, res, next) => {
 
     const profileObj = profile.toObject();
 
-    // Redact if not shared
+    // Redact if not shared (which is if limit exceeded and no accepted interest)
     if (!isContactShared) {
       if (profileObj.user) {
         profileObj.user.email = undefined;
@@ -140,6 +196,7 @@ export const getProfile = async (req, res, next) => {
     res.json({
       profile: profileObj,
       isContactShared,
+      limitExceeded,
       interest: interest ? {
         _id: interest._id,
         from: interest.from,

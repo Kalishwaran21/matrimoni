@@ -4,8 +4,10 @@ import { Link } from "react-router-dom";
 import { api } from "../services/api";
 import { toast } from "../components/Toast";
 import Spinner from "../components/Spinner";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function ForgotPassword() {
+  const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -19,7 +21,7 @@ export default function ForgotPassword() {
       setSent(true);
       // Dev-only: backend returns the token when NODE_ENV !== production
       if (data.devResetToken) setDevToken(data.devResetToken);
-      toast.success("Reset instructions sent (if email exists).");
+      toast.success(t("forgotSuccess"));
     } catch (err) {
       toast.error(err.response?.data?.message || "Request failed. Try again.");
     } finally {
@@ -38,8 +40,8 @@ export default function ForgotPassword() {
             </span>
           </div>
 
-          <p className="label text-center">Password reset</p>
-          <h1 className="mt-2 text-center text-3xl font-black text-slate-950">Forgot password?</h1>
+          <p className="label text-center">{t("forgotHeroTag")}</p>
+          <h1 className="mt-2 text-center text-3xl font-black text-slate-950">{t("forgotHeroTitle")}</h1>
 
           {sent ? (
             <div className="mt-8 text-center">
@@ -66,17 +68,17 @@ export default function ForgotPassword() {
               )}
 
               <Link to="/login" className="mt-6 inline-block text-sm font-semibold text-maroon-700 hover:underline">
-                Back to login
+                {t("forgotBackLogin")}
               </Link>
             </div>
           ) : (
             <>
               <p className="mt-3 text-center text-sm text-slate-500 leading-6">
-                Enter your registered email and we'll send you a reset link.
+                {t("forgotHeroDesc")}
               </p>
               <form onSubmit={submit} className="mt-8 grid gap-4">
                 <label>
-                  <span className="label">Email address</span>
+                  <span className="label">{t("forgotEmailLabel")}</span>
                   <input
                     id="forgot-email"
                     className="field mt-2"
@@ -91,16 +93,16 @@ export default function ForgotPassword() {
                 <button id="forgot-submit" className="btn-primary" disabled={loading}>
                   {loading ? (
                     <>
-                      <Spinner size="sm" className="border-white/40 border-t-white" /> Sending...
+                      <Spinner size="sm" className="border-white/40 border-t-white" /> {t("forgotSending")}
                     </>
                   ) : (
                     <>
-                      <Mail size={17} /> Send Reset Link
+                      <Mail size={17} /> {t("forgotSubmitBtn")}
                     </>
                   )}
                 </button>
                 <Link to="/login" className="text-center text-sm font-semibold text-maroon-700 hover:underline">
-                  Back to login
+                  {t("forgotBackLogin")}
                 </Link>
               </form>
             </>

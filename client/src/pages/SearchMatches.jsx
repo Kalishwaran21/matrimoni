@@ -213,7 +213,7 @@ export default function SearchMatches() {
                   />
                 ) : (
                   <div className="grid h-full place-items-center text-5xl font-black text-maroon-200 uppercase">
-                    {(activeProfile.basic?.name || "?").charAt(0)}
+                    {formatName((activeProfile.basic?.name || "?").charAt(0), language)}
                   </div>
                 )}
                 {activeProfile.isApproved && (
@@ -224,7 +224,7 @@ export default function SearchMatches() {
               </div>
 
               <div>
-                <h4 className="text-lg font-black text-slate-950">{activeProfile.basic?.name || "Anonymous"}</h4>
+                <h4 className="text-lg font-black text-slate-950">{formatName(activeProfile.basic?.name || "Anonymous", language)}</h4>
                 <p className="text-xs font-bold text-rose-600 mt-0.5">
                   {activeProfile.career?.jobTitle || "—"} • {activeProfile.location?.city || "—"}
                 </p>

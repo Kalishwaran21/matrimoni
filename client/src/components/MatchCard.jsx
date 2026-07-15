@@ -2,14 +2,16 @@ import React from "react";
 import { Briefcase, GraduationCap, Heart, HeartHandshake, MapPin, Star, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "../context/LanguageContext";
+import { formatName } from "../utils/transliterate";
 
 export default function MatchCard({ item, onInterest }) {
   const { t, language } = useLanguage();
   const profile = item.profile || item;
   const user = profile.user || {};
-  const photo = profile.photos?.[0]?.url;
+  const photo = profile.photo?.url;
   const match = item.matchPercentage ?? 60;
-  const name = profile.basic?.name || user.fullName || "Unknown";
+  const rawName = profile.basic?.name || user.fullName || "Unknown";
+  const name = formatName(rawName, language);
 
   // Gradient color for match % badge
   const matchColor =

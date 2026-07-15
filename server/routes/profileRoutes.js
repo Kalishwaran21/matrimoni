@@ -5,8 +5,8 @@ import { upload } from "../middleware/upload.js";
 
 const router = express.Router();
 
-router.post("/", protect, upload.array("photos", 6), upsertProfile);
-router.put("/", protect, upload.array("photos", 6), upsertProfile);
+router.post("/", protect, upload.single("photo"), upsertProfile);
+router.put("/", protect, upload.single("photo"), upsertProfile);
 router.get("/me", protect, getMyProfile);
 router.get("/:id", protect, getProfile);
 

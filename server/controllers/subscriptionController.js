@@ -3,23 +3,45 @@ import { razorpay } from "../config/razorpay.js";
 import Subscription from "../models/Subscription.js";
 import User from "../models/User.js";
 
-const plans = {
-  Free: { amount: 0, days: 0 },
-  Premium: { amount: 149900, days: 90 }
+import Settings from "../models/Settings.js";
+
+const getDynamicPlans = async () => {
+  let settings = await Settings.findOne();
+  if (!settings) {
+    settings = await Settings.create({});
+  }
+  return {
+    Free: { amount: 0, days: 0 },
+    Silver: { amount: settings.silverPrice * 100, days: 30 },
+    Gold: { amount: settings.goldPrice * 100, days: 90 },
+    Diamond: { amount: settings.diamondPrice * 100, days: 365 }
+  };
 };
 
-export const getPlans = (req, res) => {
-  res.json({
-    plans: [
-      { name: "Free", price: 0, features: ["Create profile", "Search matches", "Send limited interests"] },
-      { name: "Premium", price: 1499, features: ["Unlimited chat", "View contact details", "Profile boost"] }
-    ],
-    razorpayKey: process.env.RAZORPAY_KEY_ID || ""
-  });
+export const getPlans = async (req, res, next) => {
+  try {
+    let settings = await Settings.findOne();
+    if (!settings) {
+      settings = await Settings.create({});
+    }
+
+    res.json({
+      plans: [
+        { name: "Free", price: 0, features: ["Create profile", "Search matches", "5 Interests/day"] },
+        { name: "Silver", price: settings.silverPrice, features: ["10 Interests/day", "Basic matching", "Profile visibility"] },
+        { name: "Gold", price: settings.goldPrice, features: ["15 Interests/day", "View 5 Contacts & Horoscopes/day", "Profile boost"] },
+        { name: "Diamond", price: settings.diamondPrice, features: ["Unlimited Interests", "View 20 Contacts & Horoscopes/day", "Direct Chat"] }
+      ],
+      razorpayKey: process.env.RAZORPAY_KEY_ID || ""
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 export const createOrder = async (req, res, next) => {
   try {
+    const plans = await getDynamicPlans();
     const selected = plans[req.body.plan];
     if (!selected || req.body.plan === "Free") {
       return res.status(400).json({ message: "Select a paid plan" });
@@ -59,7 +81,11 @@ export const verifyPayment = async (req, res, next) => {
       return res.status(400).json({ message: "Payment verification failed" });
     }
 
+    const plans = await getDynamicPlans();
     const selected = plans[plan];
+    if (!selected) {
+      return res.status(400).json({ message: "Invalid plan selected" });
+    }
     const expiresAt = new Date(Date.now() + selected.days * 24 * 60 * 60 * 1000);
     const subscription = await Subscription.findOneAndUpdate(
       { user: req.user._id, razorpayOrderId: razorpay_order_id },

@@ -68,7 +68,7 @@ export default function AdminCreatedProfiles() {
         {filtered.map((profile) => {
           const name = profile.basic?.name || profile.user?.fullName || "—";
           const user = profile.user || {};
-          const photo = profile.photos?.[0]?.url;
+          const photo = profile.photo?.url;
 
           return (
             <div

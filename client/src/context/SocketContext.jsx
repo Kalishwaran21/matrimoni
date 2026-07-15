@@ -6,18 +6,18 @@ import { useAuth } from "./AuthContext";
 const SocketContext = createContext(null);
 
 export const SocketProvider = ({ children }) => {
-  const { token } = useAuth();
+  const { user } = useAuth();
   const [socket, setSocket] = useState(null);
   const [presence, setPresence] = useState({});
 
   useEffect(() => {
-    if (!token) {
+    if (!user) {
       setSocket((prev) => { prev?.disconnect(); return null; });
       return;
     }
 
     const nextSocket = io(import.meta.env.VITE_SOCKET_URL || "http://localhost:5000", {
-      auth: { token },
+      withCredentials: true,
       // Prefer websocket transport — avoids the HTTP long-poll CORS errors
       transports: ["websocket"],
       // Limit retries so it doesn't spam the console endlessly
@@ -36,7 +36,7 @@ export const SocketProvider = ({ children }) => {
 
     setSocket(nextSocket);
     return () => nextSocket.disconnect();
-  }, [token]);
+  }, [user]);
 
   const value = useMemo(() => ({ socket, presence }), [socket, presence]);
 

@@ -17,10 +17,10 @@ export default function Profile() {
   const { user, updateUser } = useAuth();
   const { t, language } = useLanguage();
   const [form, setForm] = useState(initial);
-  const [photos, setPhotos] = useState([]);
-  const [existingPhotos, setExistingPhotos] = useState([]);
+  const [photoFile, setPhotoFile] = useState(null);
+  const [existingPhoto, setExistingPhoto] = useState(null);
   const [saving, setSaving] = useState(false);
-  const [previews, setPreviews] = useState([]);
+  const [preview, setPreview] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [isEditMode, setIsEditMode] = useState(true);
@@ -42,7 +42,7 @@ export default function Profile() {
           }
         });
         setForm(next);
-        setExistingPhotos(data.profile.photos || []);
+        setExistingPhoto(data.profile.photo || null);
         setIsEditMode(!data.profile.isSubmitted);
         setIsApproved(data.profile.isApproved || false);
 
@@ -96,28 +96,16 @@ export default function Profile() {
     }
   };
 
-  const handlePhotos = (e) => {
-    const files = Array.from(e.target.files);
-    setPhotos((prev) => [...prev, ...files]);
-
-    const newPreviews = files.map((file) => URL.createObjectURL(file));
-    setPreviews((prev) => [...prev, ...newPreviews]);
+  const handlePhoto = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setPhotoFile(file);
+    setPreview(URL.createObjectURL(file));
   };
 
-  const removePhoto = async (index, isExisting = false, photoId = null) => {
-    if (isExisting && photoId) {
-      if (!window.confirm(language === "en" ? "Delete this photo?" : "இந்த புகைப்படத்தை நீக்கவா?")) return;
-      try {
-        await api.delete(`/profile/photos/${photoId}`);
-        setExistingPhotos((prev) => prev.filter((p) => p.publicId !== photoId));
-        toast.success(language === "en" ? "Photo deleted" : "புகைப்படம் நீக்கப்பட்டது");
-      } catch (err) {
-        toast.error(err.response?.data?.message || (language === "en" ? "Delete failed" : "நீக்க முடியவில்லை"));
-      }
-    } else {
-      setPhotos((prev) => prev.filter((_, i) => i !== index));
-      setPreviews((prev) => prev.filter((_, i) => i !== index));
-    }
+  const removeNewPhoto = () => {
+    setPhotoFile(null);
+    setPreview(null);
   };
 
   const submit = async (e) => {
@@ -126,7 +114,9 @@ export default function Profile() {
 
     const formData = new FormData();
     formData.append("updates", JSON.stringify(form));
-    photos.forEach((file) => formData.append("photos", file));
+    if (photoFile) {
+      formData.append("photo", photoFile);
+    }
 
     try {
       const { data } = await api.post("/profile", formData, {
@@ -144,9 +134,9 @@ export default function Profile() {
         });
         return next;
       });
-      setExistingPhotos(data.profile.photos || []);
-      setPhotos([]);
-      setPreviews([]);
+      setExistingPhoto(data.profile.photo || null);
+      setPhotoFile(null);
+      setPreview(null);
       setIsEditMode(false);
       toast.success(language === "en" ? "Profile saved successfully!" : "சுயவிவரம் வெற்றிகரமாக சேமிக்கப்பட்டது!");
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -194,7 +184,7 @@ export default function Profile() {
   const availableStates = DATA.statesByCountry[selectedCountry] || ["Other"];
 
   const fmt = (n) => (n ? parseInt(n).toLocaleString("en-IN") : "—");
-  const cardPhoto = previews[0] || existingPhotos[0]?.url || "";
+  const cardPhoto = preview || existingPhoto?.url || "";
   const tagline = [form.career?.jobTitle, form.location?.city].filter(Boolean).join(" • ") || "—";
   const profileId = `M${(user?._id || "").substring(18).toUpperCase()}`;
 
@@ -234,58 +224,46 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* ── SECTION 1: Photos ── */}
+      {/* ── SECTION 1: Profile Photo ── */}
       <section className="panel">
         <h2 className="mb-5 text-xl font-black text-maroon-800 flex items-center gap-2">
-          <span>📸</span> {t("secPhotos")}
+          <span>📸</span> {language === "en" ? "Profile Photo" : "சுயவிவரப் படம்"}
         </h2>
-        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
-          {/* Upload card */}
+        <div className="flex gap-4 items-start">
+          {/* Preview or Existing Photo */}
+          {(preview || existingPhoto?.url) ? (
+            <div className="group relative h-40 w-40 overflow-hidden rounded-2xl border border-rose-100 bg-slate-50 shadow-sm animate-fade-in">
+              <img src={preview || existingPhoto?.url} alt="Profile" className="h-full w-full object-cover" />
+              {isEditMode && preview && (
+                <button
+                  type="button"
+                  onClick={removeNewPhoto}
+                  className="absolute right-2 top-2 rounded-xl bg-slate-950/65 p-1.5 text-white hover:bg-slate-900 transition"
+                  title="Remove new selection"
+                >
+                  <X size={15} />
+                </button>
+              )}
+            </div>
+          ) : null}
+
+          {/* Upload Button */}
           {isEditMode && (
-            <label className="flex h-40 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-rose-200 bg-rose-50/30 hover:bg-rose-50/60 hover:border-rose-300 transition-all">
+            <label className="flex h-40 w-40 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-rose-200 bg-rose-50/30 hover:bg-rose-50/60 hover:border-rose-300 transition-all">
               <Camera size={28} className="text-maroon-600 animate-pulse" />
-              <span className="mt-2 text-xs font-semibold text-maroon-800">{language === "en" ? "Add Photo" : "படம் சேர்க்க"}</span>
+              <span className="mt-2 text-xs font-semibold text-maroon-800 text-center px-2">
+                {(preview || existingPhoto) 
+                  ? (language === "en" ? "Change Photo" : "படத்தை மாற்றவும்") 
+                  : (language === "en" ? "Add Photo" : "படம் சேர்க்க")}
+              </span>
               <input
                 type="file"
-                multiple
                 accept="image/*"
                 className="hidden"
-                onChange={handlePhotos}
+                onChange={handlePhoto}
               />
             </label>
           )}
-
-          {/* New previews */}
-          {previews.map((url, i) => (
-            <div key={`new-${i}`} className="group relative h-40 overflow-hidden rounded-2xl border border-rose-100 bg-slate-50 shadow-sm animate-fade-in">
-              <img src={url} alt="New preview" className="h-full w-full object-cover" />
-              {isEditMode && (
-                <button
-                  type="button"
-                  onClick={() => removePhoto(i, false)}
-                  className="absolute right-2 top-2 rounded-xl bg-slate-950/65 p-1.5 text-white hover:bg-slate-900 transition"
-                >
-                  <X size={15} />
-                </button>
-              )}
-            </div>
-          ))}
-
-          {/* Existing photos */}
-          {existingPhotos.map((p, i) => (
-            <div key={`ex-${i}`} className="group relative h-40 overflow-hidden rounded-2xl border border-rose-100 bg-slate-50 shadow-sm">
-              <img src={p.url} alt="Saved photo" className="h-full w-full object-cover" />
-              {isEditMode && (
-                <button
-                  type="button"
-                  onClick={() => removePhoto(i, true, p.publicId)}
-                  className="absolute right-2 top-2 rounded-xl bg-slate-950/65 p-1.5 text-white hover:bg-slate-900 transition"
-                >
-                  <X size={15} />
-                </button>
-              )}
-            </div>
-          ))}
         </div>
       </section>
 
@@ -488,7 +466,7 @@ export default function Profile() {
             >
               <option value="">Select Caste</option>
               {availableCastes.map((c) => (
-                <option key={c} value={c}>{c}</option>
+                <option key={c} value={c}>{t(c)}</option>
               ))}
             </select>
           </label>
@@ -778,7 +756,7 @@ export default function Profile() {
               onChange={(e) => update("horoscope", "rasi", e.target.value)}
             >
               <option value="">Select Rasi</option>
-              {Object.keys(DATA.rasiData).map((r) => <option key={r} value={r}>{r}</option>)}
+              {Object.keys(DATA.rasiData).map((r) => <option key={r} value={r}>{t(r)}</option>)}
             </select>
           </label>
           <label className="flex flex-col gap-1.5">
@@ -791,7 +769,7 @@ export default function Profile() {
               onChange={(e) => update("horoscope", "nakshatra", e.target.value)}
             >
               <option value="">Select Natchathiram</option>
-              {availableStars.map((s) => <option key={s} value={s}>{s}</option>)}
+              {availableStars.map((s) => <option key={s} value={s}>{t(s)}</option>)}
             </select>
           </label>
           <label className="flex flex-col gap-1.5">
@@ -804,7 +782,7 @@ export default function Profile() {
               onChange={(e) => update("horoscope", "dosham", e.target.value)}
             >
               <option value="">Select Dosham</option>
-              {DATA.doshamTypes.map((d) => <option key={d} value={d}>{d}</option>)}
+              {DATA.doshamTypes.map((d) => <option key={d} value={d}>{t(d)}</option>)}
             </select>
           </label>
           <label className="flex flex-col gap-1.5">
@@ -966,7 +944,7 @@ export default function Profile() {
             >
               <option value="">No Bar / Select Caste</option>
               {(DATA.castes[form.preferences?.religion] || ["Others"]).map((c) => (
-                <option key={c} value={c}>{c}</option>
+                <option key={c} value={c}>{t(c)}</option>
               ))}
             </select>
           </label>
@@ -1144,12 +1122,12 @@ export default function Profile() {
                     <div>
                       <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{t("fieldRasi")} / {t("fieldStar")}</p>
                       <p className="mt-0.5 font-bold text-slate-800">
-                        {form.horoscope?.rasi ? `${form.horoscope.rasi}, ${form.horoscope.nakshatra || "—"}` : "—"}
+                        {form.horoscope?.rasi ? `${t(form.horoscope.rasi)}, ${form.horoscope.nakshatra ? t(form.horoscope.nakshatra) : "—"}` : "—"}
                       </p>
                     </div>
                     <div>
                       <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{t("fieldDosham")}</p>
-                      <p className="mt-0.5 font-bold text-slate-800">{form.horoscope?.dosham || "—"}</p>
+                      <p className="mt-0.5 font-bold text-slate-800">{form.horoscope?.dosham ? t(form.horoscope.dosham) : "—"}</p>
                     </div>
                     <div>
                       <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{t("fieldHouse")} / {t("fieldLand")}</p>

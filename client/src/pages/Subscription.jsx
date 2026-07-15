@@ -6,6 +6,7 @@ import { toast } from "../components/Toast";
 import { api } from "../services/api";
 import { plans as fallbackPlans } from "../utils/constants";
 import { useAuth } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
 
 // Load Razorpay checkout script dynamically
 function loadRazorpay() {
@@ -21,6 +22,7 @@ function loadRazorpay() {
 
 export default function Subscription() {
   const { user } = useAuth();
+  const { t, language } = useLanguage();
   const [plans, setPlans] = useState(fallbackPlans);
   const [razorpayKey, setRazorpayKey] = useState("");
   const [loading, setLoading] = useState(true);
@@ -118,12 +120,12 @@ export default function Subscription() {
     <div className="grid gap-8 animate-fade-up">
       {/* Header */}
       <div className="text-center">
-        <p className="label">Membership</p>
+        <p className="label">{t("planHeroTag")}</p>
         <h1 className="mt-2 text-3xl font-black text-slate-950">
-          Upgrade Your <span className="text-maroon-700">Soulmate</span> Experience
+          {t("planHeroTitle1")} <span className="text-maroon-700">Soulmate</span> {t("planHeroTitle2")}
         </h1>
         <p className="mt-3 text-sm text-slate-500 max-w-lg mx-auto">
-          Unlock premium features to connect faster, chat freely, and stand out to potential matches.
+          {t("planHeroDesc")}
         </p>
       </div>
 
@@ -132,14 +134,14 @@ export default function Subscription() {
         <div className="flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4">
           <Crown size={20} className="text-amber-600" />
           <p className="font-semibold text-amber-900">
-            You're on a Premium plan. Enjoy full access!
+            {t("planCurrentTag")}
           </p>
           <Zap size={20} className="text-amber-600 ml-auto" />
         </div>
       )}
 
       {/* Plan cards */}
-      <div className="grid gap-6 md:grid-cols-2 max-w-3xl mx-auto">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 max-w-6xl mx-auto">
         {plans.map((plan) => (
           <div key={plan.name} className={processingPlan === plan.name ? "opacity-70 pointer-events-none" : ""}>
             <PlanCard
@@ -152,7 +154,7 @@ export default function Subscription() {
 
       {/* Payment note */}
       <p className="text-center text-xs text-slate-400">
-        Payments are processed securely via Razorpay. All prices are in Indian Rupees (₹) and include GST.
+        {t("planPaymentNote")}
       </p>
     </div>
   );

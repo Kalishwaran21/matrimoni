@@ -4,8 +4,10 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../services/api";
 import { toast } from "../components/Toast";
 import { KeyRound, Eye, EyeOff } from "lucide-react";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function ResetPassword() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const [form, setForm] = useState({ token: params.get("token") || "", password: "", confirm: "" });
@@ -28,7 +30,7 @@ export default function ResetPassword() {
         token: form.token,
         password: form.password
       });
-      toast.success("Password updated successfully! Please login.");
+      toast.success(t("resetSuccess"));
       setTimeout(() => navigate("/login"), 1500);
     } catch (err) {
       toast.error(err.response?.data?.message || "Reset failed. Token may have expired.");
@@ -52,10 +54,10 @@ export default function ResetPassword() {
             </span>
           </div>
 
-          <p className="label text-center">Reset password</p>
-          <h1 className="mt-2 text-center text-3xl font-black text-slate-950">Create new password</h1>
+          <p className="label text-center">{t("resetHeroTag")}</p>
+          <h1 className="mt-2 text-center text-3xl font-black text-slate-950">{t("resetHeroTitle")}</h1>
           <p className="mt-3 text-center text-sm text-slate-500 leading-6">
-            Enter the reset token from your email and choose a new password.
+            {t("resetHeroDesc")}
           </p>
 
           <div className="mt-8 grid gap-4">
@@ -74,7 +76,7 @@ export default function ResetPassword() {
 
             {/* New password */}
             <label>
-              <span className="label">New Password</span>
+              <span className="label">{t("resetPwLabel")}</span>
               <div className="relative mt-2">
                 <input
                   id="reset-password"
@@ -111,7 +113,7 @@ export default function ResetPassword() {
             </label>
 
             <button id="reset-submit" className="btn-primary" disabled={loading}>
-              {loading ? "Updating..." : "Set New Password"}
+              {loading ? t("resetUpdating") : t("resetSubmitBtn")}
             </button>
           </div>
 

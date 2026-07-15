@@ -41,7 +41,7 @@ const profileSchema = new mongoose.Schema(
       fatherOccupation: String,
       motherOccupation: String,
       siblings: Number,
-      familytype: String
+      familyType: String
     },
     horoscope: {
       rasi: String,
@@ -72,12 +72,10 @@ const profileSchema = new mongoose.Schema(
       job: String,
       language: String
     },
-    photos: [
-      {
-        url: String,
-        publicId: String
-      }
-    ],
+    photo: {
+      url: String,
+      publicId: String
+    },
     boostUntil: Date,
     completionScore: { type: Number, default: 0 },
     isSubmitted: { type: Boolean, default: false },

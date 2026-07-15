@@ -1,9 +1,11 @@
 import React from "react";
 import { Check, Sparkles, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function PlanCard({ plan, onSelect }) {
-  const isPremium = plan.name === "Premium";
+  const { t } = useLanguage();
+  const isPremium = plan.name !== "Free";
   const isFree = plan.name === "Free";
 
   return (
@@ -18,7 +20,7 @@ export default function PlanCard({ plan, onSelect }) {
       {isPremium && (
         <div className="absolute right-4 top-4">
           <span className="badge-maroon !text-xs font-black">
-            <Sparkles size={10} /> Most Popular
+            <Sparkles size={10} /> {t("Most Popular")}
           </span>
         </div>
       )}
@@ -34,13 +36,13 @@ export default function PlanCard({ plan, onSelect }) {
           {plan.name.charAt(0)}
         </div>
 
-        <h3 className="text-xl font-black text-slate-950">{plan.name}</h3>
+        <h3 className="text-xl font-black text-slate-950">{t(plan.name)}</h3>
 
         <div className="mt-3 flex items-end gap-1">
           <span className="text-4xl font-black text-slate-950">
-            {isFree ? "Free" : `₹${plan.price}`}
+            {isFree ? t("Free") : `₹${plan.price}`}
           </span>
-          {!isFree && <span className="mb-1 text-sm text-slate-500">/plan</span>}
+          {!isFree && <span className="mb-1 text-sm text-slate-500">{t("/plan")}</span>}
         </div>
 
         {/* Features */}
@@ -53,7 +55,7 @@ export default function PlanCard({ plan, onSelect }) {
                   isPremium ? "text-maroon-600" : "text-slate-400"
                 }`}
               />
-              {feature}
+              {t(feature)}
             </li>
           ))}
         </ul>
@@ -71,7 +73,7 @@ export default function PlanCard({ plan, onSelect }) {
                 : "btn-secondary"
             }`}
           >
-            {isFree ? "Get Started" : `Choose ${plan.name}`}
+            {isFree ? t("planBtnFree") : `${t("planBtnChoose")} ${t(plan.name)}`}
           </button>
         ) : (
           <Link
@@ -82,7 +84,7 @@ export default function PlanCard({ plan, onSelect }) {
                 : "btn-secondary"
             }`}
           >
-            {isFree ? "Get Started" : `Choose ${plan.name}`}
+            {isFree ? t("planBtnFree") : `${t("planBtnChoose")} ${t(plan.name)}`}
           </Link>
         )}
       </div>

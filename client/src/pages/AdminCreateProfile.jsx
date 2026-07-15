@@ -26,8 +26,8 @@ export default function AdminCreateProfile() {
 
   // Step 2: Profile fields
   const [form, setForm] = useState(initialProfileState);
-  const [photos, setPhotos] = useState([]);
-  const [previews, setPreviews] = useState([]);
+  const [photoFile, setPhotoFile] = useState(null);
+  const [preview, setPreview] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
@@ -73,16 +73,16 @@ export default function AdminCreateProfile() {
     }
   };
 
-  const handlePhotos = (e) => {
-    const files = Array.from(e.target.files);
-    setPhotos((prev) => [...prev, ...files]);
-    const newPreviews = files.map((file) => URL.createObjectURL(file));
-    setPreviews((prev) => [...prev, ...newPreviews]);
+  const handlePhoto = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setPhotoFile(file);
+    setPreview(URL.createObjectURL(file));
   };
 
-  const removePhoto = (index) => {
-    setPhotos((prev) => prev.filter((_, i) => i !== index));
-    setPreviews((prev) => prev.filter((_, i) => i !== index));
+  const removeNewPhoto = () => {
+    setPhotoFile(null);
+    setPreview(null);
   };
 
   const handleNext = (e) => {
@@ -113,7 +113,9 @@ export default function AdminCreateProfile() {
     formData.append("mobile", mobile);
     formData.append("gender", gender);
     formData.append("profileData", JSON.stringify(form));
-    photos.forEach((file) => formData.append("photos", file));
+    if (photoFile) {
+      formData.append("photo", photoFile);
+    }
 
     try {
       await api.post("/admin/users/create", formData, {
@@ -163,7 +165,7 @@ export default function AdminCreateProfile() {
   const availableStates = DATA.statesByCountry[selectedCountry] || ["Other"];
 
   const fmt = (n) => (n ? parseInt(n).toLocaleString("en-IN") : "—");
-  const cardPhoto = previews[0] || "";
+  const cardPhoto = preview || "";
   const tagline = [form.career?.jobTitle, form.location?.city].filter(Boolean).join(" • ") || "—";
 
   return (
@@ -267,36 +269,37 @@ export default function AdminCreateProfile() {
         </form>
       ) : (
         <form onSubmit={handleSubmit} className="grid gap-6 animate-fade-in">
-          {/* Photos */}
+          {/* Photo */}
           <section className="panel">
             <h2 className="mb-5 text-xl font-black text-maroon-800 flex items-center gap-2">
               <span>📸</span> {t("secPhotos")}
             </h2>
-            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
-              <label className="flex h-40 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-rose-200 bg-rose-50/30 hover:bg-rose-50/60 hover:border-rose-300 transition-all">
-                <Camera size={28} className="text-maroon-600 animate-pulse" />
-                <span className="mt-2 text-xs font-semibold text-maroon-800">{language === "en" ? "Add Photo" : "படம் சேர்க்க"}</span>
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handlePhotos}
-                />
-              </label>
-
-              {previews.map((url, i) => (
-                <div key={i} className="group relative h-40 overflow-hidden rounded-2xl border border-rose-100 bg-slate-50 shadow-sm animate-fade-in">
-                  <img src={url} alt="New preview" className="h-full w-full object-cover" />
+            <div className="flex gap-4 items-start">
+              {preview ? (
+                <div className="group relative h-40 w-40 overflow-hidden rounded-2xl border border-rose-100 bg-slate-50 shadow-sm animate-fade-in">
+                  <img src={preview} alt="New preview" className="h-full w-full object-cover" />
                   <button
                     type="button"
-                    onClick={() => removePhoto(i)}
+                    onClick={removeNewPhoto}
                     className="absolute right-2 top-2 rounded-xl bg-slate-950/65 p-1.5 text-white hover:bg-slate-900 transition"
                   >
                     <X size={15} />
                   </button>
                 </div>
-              ))}
+              ) : null}
+
+              <label className="flex h-40 w-40 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-rose-200 bg-rose-50/30 hover:bg-rose-50/60 hover:border-rose-300 transition-all">
+                <Camera size={28} className="text-maroon-600 animate-pulse" />
+                <span className="mt-2 text-xs font-semibold text-maroon-800 px-2 text-center">
+                   {preview ? (language === "en" ? "Change Photo" : "படத்தை மாற்றவும்") : (language === "en" ? "Add Photo" : "படம் சேர்க்க")}
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handlePhoto}
+                />
+              </label>
             </div>
           </section>
 

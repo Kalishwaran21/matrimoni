@@ -59,6 +59,76 @@ export default function AdminDashboard() {
           </a>
         ))}
       </div>
+
+      {/* Pricing Settings */}
+      <AdminPricingSettings />
+    </div>
+  );
+}
+
+function AdminPricingSettings() {
+  const [settings, setSettings] = useState({ silverPrice: 500, goldPrice: 1500, diamondPrice: 2500 });
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    api.get("/admin/settings").then(({ data }) => {
+      if (data.settings) setSettings(data.settings);
+    });
+  }, []);
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await api.put("/admin/settings", settings);
+      alert("Settings updated successfully!");
+    } catch (err) {
+      alert("Failed to update settings");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="panel mt-4">
+      <h2 className="text-xl font-black text-slate-950 mb-4">Subscription Pricing (₹)</h2>
+      <form onSubmit={handleUpdate} className="grid gap-4 sm:grid-cols-3">
+        <div>
+          <label className="label">Silver Price</label>
+          <input 
+            type="number" 
+            className="input mt-1" 
+            value={settings.silverPrice} 
+            onChange={e => setSettings({...settings, silverPrice: Number(e.target.value)})}
+            required
+          />
+        </div>
+        <div>
+          <label className="label">Gold Price</label>
+          <input 
+            type="number" 
+            className="input mt-1" 
+            value={settings.goldPrice} 
+            onChange={e => setSettings({...settings, goldPrice: Number(e.target.value)})}
+            required
+          />
+        </div>
+        <div>
+          <label className="label">Diamond Price</label>
+          <input 
+            type="number" 
+            className="input mt-1" 
+            value={settings.diamondPrice} 
+            onChange={e => setSettings({...settings, diamondPrice: Number(e.target.value)})}
+            required
+          />
+        </div>
+        <div className="sm:col-span-3 flex justify-end mt-2">
+          <button type="submit" className="btn-primary py-2 px-6" disabled={loading}>
+            {loading ? "Saving..." : "Save Prices"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

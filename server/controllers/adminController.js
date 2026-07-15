@@ -2,6 +2,7 @@ import Interest from "../models/Interest.js";
 import Notification from "../models/Notification.js";
 import Profile from "../models/Profile.js";
 import Subscription from "../models/Subscription.js";
+import Settings from "../models/Settings.js";
 import User from "../models/User.js";
 import cloudinary from "../config/cloudinary.js";
 import Chat from "../models/Chat.js";
@@ -27,7 +28,7 @@ const getByPath = (source, path) => path.split(".").reduce((obj, key) => obj?.[k
 
 const calculateCompletion = (profile) => {
   const filled = completionFields.filter((path) => Boolean(getByPath(profile, path))).length;
-  const photoScore = profile.photos?.length ? 1 : 0;
+  const photoScore = profile.photo?.url ? 1 : 0;
   return Math.round(((filled + photoScore) / (completionFields.length + 1)) * 100);
 };
 
@@ -153,18 +154,16 @@ export const createClientProfile = async (req, res, next) => {
       gender
     });
 
-    const photos = [];
-    if (req.files?.length) {
-      for (const file of req.files) {
-        const result = await uploadBuffer(file);
-        photos.push({ url: result.secure_url, publicId: result.public_id });
-      }
+    let photo = undefined;
+    if (req.file) {
+      const result = await uploadBuffer(req.file);
+      photo = { url: result.secure_url, publicId: result.public_id };
     }
 
     const finalProfileData = {
       ...profileData,
       user: user._id,
-      photos,
+      photo,
       isSubmitted: true,
       isApproved: true,
       createdByAdmin: true
@@ -183,7 +182,8 @@ export const getAdminCreatedProfiles = async (req, res, next) => {
   try {
     const profiles = await Profile.find({ createdByAdmin: true })
       .populate("user", "fullName email mobile gender isPremium")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .limit(100);
 
     res.json({ profiles });
   } catch (error) {
@@ -204,7 +204,8 @@ export const getClientInterests = async (req, res, next) => {
     })
       .populate("from", "fullName email mobile gender isPremium")
       .populate("to", "fullName email mobile gender isPremium")
-      .sort("-createdAt");
+      .sort("-createdAt")
+      .limit(100);
 
     const allUserIds = [
       ...interests.map((i) => i.from?._id),
@@ -266,6 +267,36 @@ export const respondClientInterest = async (req, res, next) => {
     }
 
     res.json({ message: "Interest updated successfully", interest });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getSettings = async (req, res, next) => {
+  try {
+    let settings = await Settings.findOne();
+    if (!settings) {
+      settings = await Settings.create({});
+    }
+    res.json({ settings });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateSettings = async (req, res, next) => {
+  try {
+    let settings = await Settings.findOne();
+    if (!settings) {
+      settings = new Settings();
+    }
+    
+    if (req.body.silverPrice !== undefined) settings.silverPrice = req.body.silverPrice;
+    if (req.body.goldPrice !== undefined) settings.goldPrice = req.body.goldPrice;
+    if (req.body.diamondPrice !== undefined) settings.diamondPrice = req.body.diamondPrice;
+
+    await settings.save();
+    res.json({ settings, message: "Settings updated successfully" });
   } catch (error) {
     next(error);
   }

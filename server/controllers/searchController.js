@@ -53,3 +53,29 @@ export const searchProfiles = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getDailyMatches = async (req, res, next) => {
+  try {
+    const current = await Profile.findOne({ user: req.user._id });
+    const genderFilter = req.user.gender === "Male" ? "Female" : req.user.gender === "Female" ? "Male" : undefined;
+    
+    const query = { user: { $ne: req.user._id } };
+    if (genderFilter) query["basic.gender"] = genderFilter;
+
+    const profiles = await Profile.aggregate([
+      { $match: query },
+      { $sample: { size: 5 } }
+    ]);
+
+    const populatedProfiles = await Profile.populate(profiles, { path: "user", select: "fullName gender isPremium lastSeenAt" });
+
+    res.json({
+      results: populatedProfiles.map((profile) => ({
+        profile,
+        matchPercentage: matchScore(profile, current?.preferences || {})
+      }))
+    });
+  } catch (error) {
+    next(error);
+  }
+};

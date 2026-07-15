@@ -1,6 +1,7 @@
 import React from "react";
 import { Heart, HeartHandshake, Lock, ShieldCheck, Star, UsersRound } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useLanguage } from "../context/LanguageContext";
 
 const team = [
   { name: "Priya Raghavan", role: "Founder & CEO", initial: "P" },
@@ -17,6 +18,8 @@ const milestones = [
 ];
 
 export default function About() {
+  const { t } = useLanguage();
+
   return (
     <>
       {/* Hero */}
@@ -25,11 +28,10 @@ export default function About() {
           <div className="mx-auto mb-6 grid h-16 w-16 place-items-center rounded-2xl bg-white/15 backdrop-blur">
             <Heart size={32} fill="currentColor" className="text-pink-300" />
           </div>
-          <p className="label text-maroon-300">Our story</p>
-          <h1 className="mt-3 text-4xl font-black sm:text-5xl">About Soulmate Matrimony</h1>
+          <p className="label text-maroon-300">{t("aboutHeroTag")}</p>
+          <h1 className="mt-3 text-4xl font-black sm:text-5xl">{t("aboutHeroTitle")}</h1>
           <p className="mt-5 mx-auto max-w-2xl text-lg leading-8 text-maroon-200">
-            We believe every person deserves a meaningful connection. Soulmate was built to make the
-            search for a life partner dignified, private, and purposeful.
+            {t("aboutHeroDesc")}
           </p>
         </div>
       </section>
@@ -38,29 +40,26 @@ export default function About() {
       <section className="bg-white py-20">
         <div className="container-pad grid gap-12 lg:grid-cols-2 lg:items-center">
           <div>
-            <p className="label">Our mission</p>
+            <p className="label">{t("aboutMissionTag")}</p>
             <h2 className="mt-3 section-title">
-              Connecting hearts with{" "}
-              <span className="text-maroon-700">intention and trust</span>
+              {t("aboutMissionTitle")} <span className="text-maroon-700">{t("aboutMissionHighlight")}</span>
             </h2>
             <p className="section-subtitle">
-              Soulmate Matrimony was founded with one goal: to provide a platform where families and
-              individuals can find life partners based on real compatibility — not just browsing.
+              {t("aboutMissionSub")}
             </p>
             <p className="mt-4 leading-7 text-slate-600">
-              We combine detailed profiles, interest-first communication, horoscope matching, and
-              human review to create a space that families trust and individuals feel safe in.
+              {t("aboutMissionDesc")}
             </p>
             <Link to="/register" className="btn-primary mt-8 inline-flex">
-              Join Soulmate Free →
+              {t("aboutJoinBtn")}
             </Link>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             {[
-              { icon: ShieldCheck, label: "Verified Profiles", desc: "Every profile manually reviewed." },
-              { icon: Lock, label: "Privacy First", desc: "Contact shared only after interest." },
-              { icon: HeartHandshake, label: "Interest Gated", desc: "Chat only after mutual acceptance." },
-              { icon: Star, label: "Compatibility Score", desc: "Smart matching algorithm." }
+              { icon: ShieldCheck, label: t("aboutCard1Title"), desc: t("aboutCard1Desc") },
+              { icon: Lock, label: t("aboutCard2Title"), desc: t("aboutCard2Desc") },
+              { icon: HeartHandshake, label: t("aboutCard3Title"), desc: t("aboutCard3Desc") },
+              { icon: Star, label: t("aboutCard4Title"), desc: t("aboutCard4Desc") }
             ].map(({ icon: Icon, label, desc }) => (
               <div key={label} className="rounded-2xl border border-rose-100 bg-rose-50 p-5">
                 <Icon size={20} className="text-maroon-600 mb-3" />
@@ -75,8 +74,8 @@ export default function About() {
       {/* Milestones */}
       <section className="bg-[#fff8fa] py-20">
         <div className="container-pad">
-          <p className="label text-center">Our journey</p>
-          <h2 className="mt-3 section-title text-center mb-12">Milestones that matter</h2>
+          <p className="label text-center">{t("aboutJourneyTag")}</p>
+          <h2 className="mt-3 section-title text-center mb-12">{t("aboutJourneyTitle")}</h2>
           <div className="relative border-l-2 border-maroon-200 pl-8 grid gap-8 max-w-2xl mx-auto">
             {milestones.map(({ year, desc }) => (
               <div key={year} className="relative">
@@ -92,8 +91,8 @@ export default function About() {
       {/* Team */}
       <section className="bg-white py-20">
         <div className="container-pad">
-          <p className="label text-center">The team</p>
-          <h2 className="mt-3 section-title text-center mb-12">People behind Soulmate</h2>
+          <p className="label text-center">{t("aboutTeamTag")}</p>
+          <h2 className="mt-3 section-title text-center mb-12">{t("aboutTeamTitle")}</h2>
           <div className="grid gap-6 sm:grid-cols-3 max-w-3xl mx-auto">
             {team.map(({ name, role, initial }) => (
               <div key={name} className="panel card-hover text-center">
@@ -112,10 +111,10 @@ export default function About() {
       <section className="bg-gradient-to-r from-maroon-700 to-maroon-900 py-16 text-white">
         <div className="container-pad grid gap-8 sm:grid-cols-4 text-center">
           {[
-            { value: "32K+", label: "Verified Profiles" },
-            { value: "8.5K", label: "Successful Matches" },
-            { value: "18K", label: "Active Members" },
-            { value: "140+", label: "Cities Covered" }
+            { value: "32K+", label: t("aboutStat1") },
+            { value: "8.5K", label: t("aboutStat2") },
+            { value: "18K", label: t("aboutStat3") },
+            { value: "140+", label: t("aboutStat4") }
           ].map(({ value, label }) => (
             <div key={label}>
               <p className="text-4xl font-black text-white">{value}</p>

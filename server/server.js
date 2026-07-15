@@ -5,6 +5,8 @@ import helmet from "helmet";
 import http from "http";
 import jwt from "jsonwebtoken";
 import rateLimit from "express-rate-limit";
+import cookieParser from "cookie-parser";
+import * as cookie from "cookie";
 import { Server } from "socket.io";
 import { connectDB } from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
@@ -15,6 +17,7 @@ import chatRoutes from "./routes/chatRoutes.js";
 import subscriptionRoutes from "./routes/subscriptionRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import settingsRoutes from "./routes/settingsRoutes.js";
 import { errorHandler, notFound } from "./middleware/errorHandler.js";
 import User from "./models/User.js";
 import Chat from "./models/Chat.js";
@@ -65,6 +68,7 @@ app.use(
   })
 );
 app.use(express.json({ limit: "2mb" }));
+app.use(cookieParser());
 app.use(
   rateLimit({
     windowMs: 15 * 60 * 1000,
@@ -83,12 +87,14 @@ app.use("/api/chat", chatRoutes);
 app.use("/api/subscription", subscriptionRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/settings", settingsRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
 io.use(async (socket, next) => {
   try {
-    const token = socket.handshake.auth?.token;
+    const cookies = cookie.parse(socket.handshake.headers.cookie || "");
+    const token = cookies.jwt || socket.handshake.auth?.token;
     if (!token) return next(new Error("Authentication required"));
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -104,7 +110,10 @@ io.use(async (socket, next) => {
 
 io.on("connection", (socket) => {
   const userId = String(socket.user._id);
-  onlineUsers.set(userId, socket.id);
+  if (!onlineUsers.has(userId)) {
+    onlineUsers.set(userId, new Set());
+  }
+  onlineUsers.get(userId).add(socket.id);
   socket.join(userId);
   io.emit("presence:update", { userId, online: true });
 
@@ -147,10 +156,15 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", async () => {
-    onlineUsers.delete(userId);
-    const lastSeenAt = new Date();
-    await User.findByIdAndUpdate(userId, { lastSeenAt });
-    io.emit("presence:update", { userId, online: false, lastSeenAt });
+    if (onlineUsers.has(userId)) {
+      onlineUsers.get(userId).delete(socket.id);
+      if (onlineUsers.get(userId).size === 0) {
+        onlineUsers.delete(userId);
+        const lastSeenAt = new Date();
+        await User.findByIdAndUpdate(userId, { lastSeenAt });
+        io.emit("presence:update", { userId, online: false, lastSeenAt });
+      }
+    }
   });
 });
 
