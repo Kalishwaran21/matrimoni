@@ -4,16 +4,7 @@ import User from "../models/User.js";
 import Profile from "../models/Profile.js";
 import { signToken } from "../middleware/auth.js";
 
-const setTokenCookie = (res, token) => {
-  const isProd = process.env.NODE_ENV === "production" || !!process.env.RENDER || !!process.env.CLIENT_URL;
-  res.cookie("jwt", token, {
-    httpOnly: true,
-    secure: isProd,
-    sameSite: isProd ? "none" : "strict",
-    partitioned: isProd,
-    maxAge: 7 * 24 * 60 * 60 * 1000
-  });
-};
+
 
 const userPayload = (user, isProfileSubmitted = false, isProfileApproved = false) => ({
   id: user._id,
@@ -51,9 +42,8 @@ export const register = async (req, res, next) => {
 
     const user = await User.create(req.body);
     const token = signToken(user._id);
-    setTokenCookie(res, token);
 
-    res.status(201).json({ user: userPayload(user) });
+    res.status(201).json({ user: userPayload(user), token });
   } catch (error) {
     next(error);
   }
@@ -74,9 +64,8 @@ export const login = async (req, res, next) => {
     const isApproved = profile ? profile.isApproved : false;
 
     const token = signToken(user._id);
-    setTokenCookie(res, token);
 
-    res.json({ user: userPayload(user, isSubmitted, isApproved) });
+    res.json({ user: userPayload(user, isSubmitted, isApproved), token });
   } catch (error) {
     next(error);
   }
@@ -89,19 +78,11 @@ export const me = async (req, res) => {
   res.json({ user: userPayload(req.user, isSubmitted, isApproved) });
 };
 
-export const logout = async (req, res, next) => {
+export const logout = (req, res) => {
   try {
-    const isProd = process.env.NODE_ENV === "production" || !!process.env.RENDER || !!process.env.CLIENT_URL;
-    res.cookie("jwt", "", {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? "none" : "strict",
-      partitioned: isProd,
-      expires: new Date(0)
-    });
     res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
-    next(error);
+    res.status(500).json({ message: "Logout failed" });
   }
 };
 

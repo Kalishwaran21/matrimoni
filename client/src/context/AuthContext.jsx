@@ -20,6 +20,7 @@ export const AuthProvider = ({ children }) => {
       })
       .catch(() => {
         localStorage.removeItem("soulmate_user");
+        localStorage.removeItem("soulmate_token");
         setUser(null);
       })
       .finally(() => {
@@ -29,13 +30,16 @@ export const AuthProvider = ({ children }) => {
 
   // Listen for global logout event fired by the axios 401 interceptor
   useEffect(() => {
-    const handle = () => { setUser(null); localStorage.removeItem("soulmate_user"); };
+    const handle = () => { setUser(null); localStorage.removeItem("soulmate_user"); localStorage.removeItem("soulmate_token"); };
     window.addEventListener("soulmate:logout", handle);
     return () => window.removeEventListener("soulmate:logout", handle);
   }, []);
 
   const persist = (data) => {
     localStorage.setItem("soulmate_user", JSON.stringify(data.user));
+    if (data.token) {
+      localStorage.setItem("soulmate_token", data.token);
+    }
     setUser(data.user);
   };
 
@@ -68,6 +72,7 @@ export const AuthProvider = ({ children }) => {
       console.error("Logout error", err);
     } finally {
       localStorage.removeItem("soulmate_user");
+      localStorage.removeItem("soulmate_token");
       setUser(null);
     }
   };

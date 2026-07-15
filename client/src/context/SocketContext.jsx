@@ -18,6 +18,7 @@ export const SocketProvider = ({ children }) => {
 
     const nextSocket = io(import.meta.env.VITE_SOCKET_URL || "http://localhost:5000", {
       withCredentials: true,
+      auth: { token: localStorage.getItem("soulmate_token") },
       // Prefer websocket transport — avoids the HTTP long-poll CORS errors
       transports: ["websocket"],
       // Limit retries so it doesn't spam the console endlessly
