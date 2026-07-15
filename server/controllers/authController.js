@@ -5,10 +5,11 @@ import Profile from "../models/Profile.js";
 import { signToken } from "../middleware/auth.js";
 
 const setTokenCookie = (res, token) => {
+  const isProd = process.env.NODE_ENV === "production" || !!process.env.RENDER || !!process.env.CLIENT_URL;
   res.cookie("jwt", token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV !== "development",
-    sameSite: process.env.NODE_ENV !== "development" ? "none" : "strict",
+    secure: isProd,
+    sameSite: isProd ? "none" : "strict",
     maxAge: 7 * 24 * 60 * 60 * 1000
   });
 };
@@ -89,10 +90,11 @@ export const me = async (req, res) => {
 
 export const logout = async (req, res, next) => {
   try {
+    const isProd = process.env.NODE_ENV === "production" || !!process.env.RENDER || !!process.env.CLIENT_URL;
     res.cookie("jwt", "", {
       httpOnly: true,
-      secure: process.env.NODE_ENV !== "development",
-      sameSite: process.env.NODE_ENV !== "development" ? "none" : "strict",
+      secure: isProd,
+      sameSite: isProd ? "none" : "strict",
       expires: new Date(0)
     });
     res.status(200).json({ message: "Logged out successfully" });

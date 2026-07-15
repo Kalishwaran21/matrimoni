@@ -36,15 +36,8 @@ if (process.env.CLIENT_URL) {
 }
 
 const checkOrigin = (origin, callback) => {
-  if (!origin) return callback(null, true);
-  const cleanOrigin = origin.replace(/\/$/, "");
-  const matches = allowedOrigins.some(
-    (allowed) => allowed.replace(/\/$/, "") === cleanOrigin
-  );
-  if (matches) {
-    return callback(null, true);
-  }
-  return callback(new Error("CORS policy violation"), false);
+  // Always return true to echo back the exact origin
+  return callback(null, true);
 };
 
 const app = express();
