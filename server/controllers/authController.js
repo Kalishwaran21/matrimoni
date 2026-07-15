@@ -10,6 +10,7 @@ const setTokenCookie = (res, token) => {
     httpOnly: true,
     secure: isProd,
     sameSite: isProd ? "none" : "strict",
+    partitioned: isProd,
     maxAge: 7 * 24 * 60 * 60 * 1000
   });
 };
@@ -95,6 +96,7 @@ export const logout = async (req, res, next) => {
       httpOnly: true,
       secure: isProd,
       sameSite: isProd ? "none" : "strict",
+      partitioned: isProd,
       expires: new Date(0)
     });
     res.status(200).json({ message: "Logged out successfully" });
