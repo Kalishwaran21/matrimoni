@@ -80,8 +80,7 @@ export default function ProfileDetail() {
 
   if (!profile) return <FullPageSpinner />;
 
-  const rawName = profile.basic?.name || profile.user?.fullName || "Anonymous";
-  const name = formatName(rawName, language);
+  const name = formatName(profile.user, language);
   const isOwnProfile = profile.user?._id === currentUser?._id;
   const allPhotos = profile.photo ? [profile.photo] : [];
 

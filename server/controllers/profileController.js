@@ -84,9 +84,10 @@ export const upsertProfile = async (req, res, next) => {
     let userUpdate = { isProfileSubmitted: true, isProfileApproved: profile.isApproved };
     
     // Sync Name and Gender changes back to the User model
-    if (updates.basic?.name || updates.basic?.gender) {
+    if (updates.basic?.name || updates.basic?.nameTamil || updates.basic?.gender) {
       const u = {};
       if (updates.basic?.name) u.fullName = updates.basic.name;
+      if (updates.basic?.nameTamil) u.fullNameTamil = updates.basic.nameTamil;
       if (updates.basic?.gender) u.gender = updates.basic.gender;
       
       const updatedUser = await User.findByIdAndUpdate(req.user._id, u, { new: true });

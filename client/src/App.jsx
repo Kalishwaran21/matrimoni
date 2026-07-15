@@ -15,6 +15,7 @@ import AdminCreatedProfiles from "./pages/AdminCreatedProfiles";
 import AdminCreateProfile from "./pages/AdminCreateProfile";
 import AdminClientInterests from "./pages/AdminClientInterests";
 import AdminSettings from "./pages/AdminSettings";
+import AdminChats from "./pages/AdminChats";
 import Chat from "./pages/Chat";
 import Contact from "./pages/Contact";
 import Dashboard from "./pages/Dashboard";
@@ -71,6 +72,7 @@ export default function App() {
             <Route path="reports" element={<AdminReports />} />
             <Route path="analytics" element={<AdminAnalytics />} />
             <Route path="settings" element={<AdminSettings />} />
+            <Route path="chats" element={<AdminChats />} />
           </Route>
         </Route>
 

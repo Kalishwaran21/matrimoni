@@ -46,7 +46,7 @@ export default function Dashboard() {
           <p className="label">{t("dashHeroTag")}</p>
           <h1 className="mt-2 text-3xl font-black text-slate-950">
             {t("dashHeroTitle")}{" "}
-            <span className="text-maroon-700">{formatName(user?.fullName?.split(" ")[0], language)}!</span>
+            <span className="text-maroon-700">{formatName(user, language).split(" ")[0]}!</span>
           </h1>
         </div>
         {!profile && (

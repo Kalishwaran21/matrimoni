@@ -12,6 +12,7 @@ export default function Register() {
   const navigate = useNavigate();
   const [form, setForm] = useState({
     fullName: "",
+    fullNameTamil: "",
     email: "",
     mobile: "",
     password: "",
@@ -91,7 +92,19 @@ export default function Register() {
               />
             </label>
 
-            <label>
+            <label className="sm:col-span-2">
+              <span className="label">{language === "en" ? "Full Name (Tamil)" : "முழு பெயர் (தமிழ்)"}</span>
+              <input
+                id="reg-name-tamil"
+                className="field mt-2"
+                placeholder={language === "en" ? "eg. ஜான் டோ" : "உ.ம். ஜான் டோ"}
+                value={form.fullNameTamil}
+                onChange={f("fullNameTamil")}
+                required
+              />
+            </label>
+
+            <label className="sm:col-span-2">
               <span className="label">{t("password")}</span>
               <div className="relative mt-2">
                 <input

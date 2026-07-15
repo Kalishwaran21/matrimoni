@@ -11,7 +11,7 @@ export default function MatchCard({ item, onInterest }) {
   const photo = profile.photo?.url;
   const match = item.matchPercentage ?? 60;
   const rawName = profile.basic?.name || user.fullName || "Unknown";
-  const name = formatName(rawName, language);
+  const name = formatName(user, language);
 
   // Gradient color for match % badge
   const matchColor =

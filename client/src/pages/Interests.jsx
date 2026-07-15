@@ -220,15 +220,15 @@ export default function Interests() {
                       />
                     ) : (
                       <span className="text-4xl font-black text-maroon-200 select-none group-hover:scale-110 transition duration-300">
-                        {formatName((person?.fullName || "?").charAt(0).toUpperCase(), language)}
+                        {formatName(person, language).charAt(0).toUpperCase()}
                       </span>
                     )}
                   </Link>
                 ) : (
                   <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-xl border border-rose-100 bg-rose-50 flex items-center justify-center">
-                    <span className="text-4xl font-black text-maroon-200 select-none">
-                      {formatName((person?.fullName || "?").charAt(0).toUpperCase(), language)}
-                    </span>
+                    <div className="grid h-full w-full place-items-center bg-rose-100 text-3xl font-black text-maroon-300">
+                      {formatName(person, language).charAt(0).toUpperCase()}
+                    </div>
                   </div>
                 )}
 
@@ -241,10 +241,10 @@ export default function Interests() {
                           to={`/profile/${personProfile._id}`}
                           className="text-lg font-black text-slate-950 hover:text-maroon-700 transition"
                         >
-                          {formatName(person?.fullName || "Unknown", language)}
+                          {formatName(person, language)}
                         </Link>
                       ) : (
-                        <h3 className="text-lg font-black text-slate-950">{formatName(person?.fullName || "Unknown", language)}</h3>
+                        <h3 className="text-lg font-black text-slate-950">{formatName(person, language)}</h3>
                       )}
                       {personProfile?.isApproved && (
                         <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-black text-emerald-600 border border-emerald-100">

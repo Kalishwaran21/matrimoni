@@ -41,6 +41,11 @@ export default function Profile() {
             next[s] = data.profile[s] || {};
           }
         });
+        
+        // Populate names from user object if missing in profile
+        if (!next.basic.name && user?.fullName) next.basic.name = user.fullName;
+        if (!next.basic.nameTamil && user?.fullNameTamil) next.basic.nameTamil = user.fullNameTamil;
+
         setForm(next);
         setExistingPhoto(data.profile.photo || null);
         setIsEditMode(!data.profile.isSubmitted);
@@ -274,14 +279,25 @@ export default function Profile() {
         </h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <label className="flex flex-col gap-1.5">
-            <span className="label">{t("fieldName")} *</span>
+            <span className="label">{t("fullName")} *</span>
             <input
               className="field mt-1"
               required
               disabled={!isEditMode}
               value={form.basic?.name || ""}
               onChange={(e) => update("basic", "name", e.target.value)}
-              placeholder={language === "en" ? "E.g., Priya Sharma" : "உதாரணம்: பிரியா சர்மா"}
+              placeholder="E.g., Priya Sharma"
+            />
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="label">{language === "en" ? "Full Name (Tamil)" : "முழு பெயர் (தமிழ்)"} *</span>
+            <input
+              className="field mt-1"
+              required
+              disabled={!isEditMode}
+              value={form.basic?.nameTamil || ""}
+              onChange={(e) => update("basic", "nameTamil", e.target.value)}
+              placeholder="உதாரணம்: பிரியா சர்மா"
             />
           </label>
           <label className="flex flex-col gap-1.5">

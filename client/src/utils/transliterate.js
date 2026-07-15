@@ -1,15 +1,14 @@
-import { transliterate } from "indic-transliterator";
-
-export const formatName = (name, lang) => {
-  if (!name || typeof name !== "string") return name;
-  if (lang !== "ta") return name;
+export const formatName = (user, lang) => {
+  if (!user) return "Anonymous";
   
-  // If the name already has Tamil characters, leave it as is
-  if (/[\u0B80-\u0BFF]/.test(name)) return name;
-
-  // Split into words, transliterate each word, and capitalize properly
-  const words = name.toLowerCase().split(/\s+/);
-  const transliterated = words.map(w => transliterate(w, "tamil")).join(" ");
+  // If the passed argument is a string (fallback legacy usage), return it
+  if (typeof user === "string") return user;
   
-  return transliterated;
+  if (lang === "ta") {
+    // If user has an explicitly provided Tamil name, return it.
+    // Otherwise fallback to English name
+    return user.fullNameTamil || user.fullName || "பெயரற்றவர்";
+  }
+  
+  return user.fullName || "Anonymous";
 };

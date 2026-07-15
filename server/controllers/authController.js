@@ -16,6 +16,7 @@ const setTokenCookie = (res, token) => {
 const userPayload = (user, isProfileSubmitted = false, isProfileApproved = false) => ({
   id: user._id,
   fullName: user.fullName,
+  fullNameTamil: user.fullNameTamil,
   email: user.email,
   mobile: user.mobile,
   gender: user.gender,
@@ -27,6 +28,7 @@ const userPayload = (user, isProfileSubmitted = false, isProfileApproved = false
 
 export const registerRules = [
   body("fullName").trim().notEmpty().withMessage("Full name is required"),
+  body("fullNameTamil").trim().notEmpty().withMessage("Tamil full name is required"),
   body("email").isEmail().withMessage("Valid email is required"),
   body("mobile").trim().isLength({ min: 8 }).withMessage("Mobile number is required"),
   body("password").isLength({ min: 8 }).withMessage("Password must be at least 8 characters"),

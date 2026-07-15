@@ -1,5 +1,5 @@
 import express from "express";
-import { analytics, dashboard, listUsers, reports, toggleUserBlock, listPendingApprovals, approveProfile, createClientProfile, getClientInterests, respondClientInterest, getAdminCreatedProfiles, getSettings, updateSettings } from "../controllers/adminController.js";
+import { analytics, dashboard, listUsers, reports, toggleUserBlock, listPendingApprovals, approveProfile, createClientProfile, getClientInterests, respondClientInterest, getAdminCreatedProfiles, getSettings, updateSettings, getAdminChats, getAdminChatDetails } from "../controllers/adminController.js";
 import { adminOnly, protect } from "../middleware/auth.js";
 import { validate } from "../middleware/validate.js";
 import { registerRules } from "../controllers/authController.js";
@@ -21,5 +21,7 @@ router.get("/approvals", listPendingApprovals);
 router.patch("/approvals/:id/approve", approveProfile);
 router.get("/settings", getSettings);
 router.put("/settings", updateSettings);
+router.get("/chats", getAdminChats);
+router.get("/chats/:id", getAdminChatDetails);
 
 export default router;

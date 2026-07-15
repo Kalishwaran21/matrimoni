@@ -214,18 +214,18 @@ export default function SearchMatches() {
                   />
                 ) : (
                   <div className="grid h-full place-items-center text-5xl font-black text-maroon-200 uppercase">
-                    {formatName((activeProfile.basic?.name || "?").charAt(0), language)}
+                    {formatName(activeProfile.user, language).charAt(0)}
                   </div>
                 )}
                 {activeProfile.isApproved && (
-                  <span className="absolute bottom-1 right-1 bg-emerald-500 rounded-full p-1.5 text-white shadow" title="Verified Profile">
-                    <ShieldCheck size={16} fill="currentColor" />
-                  </span>
+                  <div className="absolute -bottom-1 -right-1 grid h-5 w-5 place-items-center rounded-full bg-emerald-500 text-white border-2 border-white shadow-sm">
+                    <ShieldCheck size={12} />
+                  </div>
                 )}
               </div>
 
               <div>
-                <h4 className="text-lg font-black text-slate-950">{formatName(activeProfile.basic?.name || "Anonymous", language)}</h4>
+                <h4 className="text-lg font-black text-slate-950">{formatName(activeProfile.user, language)}</h4>
                 <p className="text-xs font-bold text-rose-600 mt-0.5">
                   {activeProfile.career?.jobTitle || "—"} • {activeProfile.location?.city || "—"}
                 </p>
