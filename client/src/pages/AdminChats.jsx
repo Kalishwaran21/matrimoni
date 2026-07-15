@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import api from "../utils/api";
-import { toast } from "react-hot-toast";
+import { api } from "../services/api";
+import { toast } from "../components/Toast";
 import { formatName } from "../utils/transliterate";
 import { useLanguage } from "../context/LanguageContext";
 

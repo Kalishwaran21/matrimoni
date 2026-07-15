@@ -296,10 +296,29 @@ export const updateSettings = async (req, res, next) => {
     if (req.body.diamondPrice !== undefined) settings.diamondPrice = req.body.diamondPrice;
 
     await settings.save();
-    res.json({ settings, message: "Settings updated successfully" });
+    res.json({ monthlyRevenue });
   } catch (error) {
     next(error);
   }
 };
-e x p o r t   c o n s t   g e t A d m i n C h a t s   =   a s y n c   ( r e q ,   r e s ,   n e x t )   = >   {   t r y   {   c o n s t   c h a t s   =   a w a i t   C h a t . f i n d ( ) . p o p u l a t e ( " p a r t i c i p a n t s " ,   " f u l l N a m e   f u l l N a m e T a m i l   e m a i l " ) . s o r t ( {   u p d a t e d A t :   - 1   } ) ;   r e s . j s o n ( c h a t s ) ;   }   c a t c h   ( e r r o r )   {   n e x t ( e r r o r ) ;   }   } ;   e x p o r t   c o n s t   g e t A d m i n C h a t D e t a i l s   =   a s y n c   ( r e q ,   r e s ,   n e x t )   = >   {   t r y   {   c o n s t   c h a t   =   a w a i t   C h a t . f i n d B y I d ( r e q . p a r a m s . i d ) . p o p u l a t e ( " p a r t i c i p a n t s " ,   " f u l l N a m e   f u l l N a m e T a m i l   e m a i l " ) . p o p u l a t e ( " m e s s a g e s . s e n d e r " ,   " f u l l N a m e   f u l l N a m e T a m i l " ) ;   i f   ( ! c h a t )   r e t u r n   r e s . s t a t u s ( 4 0 4 ) . j s o n ( {   m e s s a g e :   " C h a t   n o t   f o u n d "   } ) ;   r e s . j s o n ( c h a t ) ;   }   c a t c h   ( e r r o r )   {   n e x t ( e r r o r ) ;   }   } ;  
- 
+
+export const getAdminChats = async (req, res, next) => {
+  try {
+    const chats = await Chat.find().populate("participants", "fullName fullNameTamil email").sort({ updatedAt: -1 });
+    res.json(chats);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAdminChatDetails = async (req, res, next) => {
+  try {
+    const chat = await Chat.findById(req.params.id)
+      .populate("participants", "fullName fullNameTamil email")
+      .populate("messages.sender", "fullName fullNameTamil");
+    if (!chat) return res.status(404).json({ message: "Chat not found" });
+    res.json(chat);
+  } catch (error) {
+    next(error);
+  }
+};
