@@ -17,6 +17,7 @@ import AdminClientInterests from "./pages/AdminClientInterests";
 import AdminSettings from "./pages/AdminSettings";
 import AdminPayments from "./pages/AdminPayments";
 import AdminChats from "./pages/AdminChats";
+import AdminImportProfiles from "./pages/AdminImportProfiles";
 import ManagerLayout from "./layouts/ManagerLayout";
 import ManagerOutsideData from "./pages/ManagerOutsideData";
 import Chat from "./pages/Chat";
@@ -69,6 +70,7 @@ export default function App() {
             <Route index element={<AdminDashboard />} />
             <Route path="users" element={<AdminUsers />} />
             <Route path="create-profile" element={<AdminCreateProfile />} />
+            <Route path="import-profiles" element={<AdminImportProfiles />} />
             <Route path="client-interests" element={<AdminClientInterests />} />
             <Route path="created-profiles" element={<AdminCreatedProfiles />} />
             <Route path="approvals" element={<AdminApprovals />} />
@@ -84,6 +86,7 @@ export default function App() {
           <Route path="manager" element={<ManagerLayout />}>
             <Route index element={<ManagerOutsideData />} />
             <Route path="created-profiles" element={<AdminCreatedProfiles />} />
+            <Route path="import-profiles" element={<AdminImportProfiles />} />
             <Route path="edit/:id" element={<ManagerOutsideData editMode />} />
           </Route>
         </Route>

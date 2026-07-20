@@ -1,11 +1,12 @@
 import React from "react";
-import { DatabaseZap, Users } from "lucide-react";
+import { DatabaseZap, Users, UploadCloud } from "lucide-react";
 import { NavLink, Outlet } from "react-router-dom";
 import Navbar from "../components/Navbar";
 
 const managerLinks = [
   ["Outside Data", "/manager", DatabaseZap],
-  ["Outside Data Profiles", "/manager/created-profiles", Users]
+  ["Outside Data Profiles", "/manager/created-profiles", Users],
+  ["Bulk Data Add", "/manager/import-profiles", UploadCloud]
 ];
 
 export default function ManagerLayout() {
