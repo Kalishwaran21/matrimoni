@@ -165,9 +165,12 @@ io.on("connection", (socket) => {
   });
 });
 
-const ensureAdminUser = async () => {
+const ensureSystemUsers = async () => {
   const adminEmail = process.env.ADMIN_EMAIL || "admin@soulmate.com";
   const adminPassword = process.env.ADMIN_PASSWORD || "Password123";
+  const managerEmail = process.env.MANAGER_EMAIL;
+  const managerPassword = process.env.MANAGER_PASSWORD || "Manager@123";
+
   try {
     const existingAdmin = await User.findOne({ email: adminEmail.toLowerCase() });
     if (!existingAdmin) {
@@ -197,8 +200,39 @@ const ensureAdminUser = async () => {
         console.log(`Updated admin user constraints for: ${adminEmail}`);
       }
     }
+
+    if (managerEmail) {
+      const existingManager = await User.findOne({ email: managerEmail.toLowerCase() });
+      if (!existingManager) {
+        await User.create({
+          fullName: "Soulmate Manager",
+          email: managerEmail,
+          mobile: "9876543211",
+          password: managerPassword,
+          gender: "Other",
+          role: "manager",
+          isActive: true,
+          isPremium: true
+        });
+        console.log(`Auto-created default manager user: ${managerEmail}`);
+      } else {
+        let needsSave = false;
+        if (existingManager.role !== "manager") {
+          existingManager.role = "manager";
+          needsSave = true;
+        }
+        if (!existingManager.isActive) {
+          existingManager.isActive = true;
+          needsSave = true;
+        }
+        if (needsSave) {
+          await existingManager.save();
+          console.log(`Updated manager user constraints for: ${managerEmail}`);
+        }
+      }
+    }
   } catch (err) {
-    console.error("Failed to ensure admin user presence:", err);
+    console.error("Error ensuring system users exist:", err);
   }
 };
 
@@ -206,7 +240,7 @@ const port = process.env.PORT || 5000;
 
 connectDB()
   .then(async () => {
-    await ensureAdminUser();
+    await ensureSystemUsers();
     server.listen(port, () => console.log(`Server running on port ${port}`));
   })
   .catch((error) => {
