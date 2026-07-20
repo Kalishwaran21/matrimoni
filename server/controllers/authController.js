@@ -9,10 +9,8 @@ import { signToken } from "../middleware/auth.js";
 const userPayload = (user, isProfileSubmitted = false, isProfileApproved = false) => ({
   id: user._id,
   fullName: user.fullName,
-  fullNameTamil: user.fullNameTamil,
   email: user.email,
   mobile: user.mobile,
-  gender: user.gender,
   role: user.role,
   isPremium: user.isPremium,
   isProfileSubmitted,
@@ -21,15 +19,13 @@ const userPayload = (user, isProfileSubmitted = false, isProfileApproved = false
 
 export const registerRules = [
   body("fullName").trim().notEmpty().withMessage("Full name is required"),
-  body("fullNameTamil").trim().notEmpty().withMessage("Tamil full name is required"),
-  body("email").isEmail().withMessage("Valid email is required"),
+  body("email").trim().isEmail().withMessage("Valid email is required"),
   body("mobile").trim().isLength({ min: 8 }).withMessage("Mobile number is required"),
-  body("password").isLength({ min: 8 }).withMessage("Password must be at least 8 characters"),
-  body("gender").isIn(["Male", "Female", "Other"]).withMessage("Gender is required")
+  body("password").isLength({ min: 8 }).withMessage("Password must be at least 8 characters")
 ];
 
 export const loginRules = [
-  body("email").isEmail().withMessage("Valid email is required"),
+  body("email").trim().isEmail().withMessage("Valid email is required"),
   body("password").notEmpty().withMessage("Password is required")
 ];
 
@@ -51,7 +47,7 @@ export const register = async (req, res, next) => {
 
 export const login = async (req, res, next) => {
   try {
-    const user = await User.findOne({ email: req.body.email.toLowerCase() }).select("+password");
+    const user = await User.findOne({ email: req.body.email.toLowerCase().trim() }).select("+password");
     if (!user || !(await user.comparePassword(req.body.password))) {
       return res.status(401).json({ message: "Invalid email or password" });
     }

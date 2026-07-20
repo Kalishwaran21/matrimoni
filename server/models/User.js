@@ -4,12 +4,11 @@ import mongoose from "mongoose";
 const userSchema = new mongoose.Schema(
   {
     fullName: { type: String, required: true, trim: true },
-    fullNameTamil: { type: String, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     mobile: { type: String, required: true, trim: true },
     password: { type: String, required: true, minlength: 8, select: false },
-    gender: { type: String, enum: ["Male", "Female", "Other"], required: true },
-    role: { type: String, enum: ["user", "admin"], default: "user" },
+    gender: { type: String, enum: ["Male", "Female", "Other"] },
+    role: { type: String, enum: ["user", "admin", "manager"], default: "user" },
     isActive: { type: Boolean, default: true },
     isPremium: { type: Boolean, default: false },
     lastSeenAt: { type: Date },

@@ -178,6 +178,68 @@ export const createClientProfile = async (req, res, next) => {
   }
 };
 
+export const updateClientProfile = async (req, res, next) => {
+  try {
+    const userId = req.params.id;
+    const { email, fullName, mobile, gender } = req.body;
+    let profileData = req.body.profileData;
+    if (typeof profileData === "string") {
+      profileData = JSON.parse(profileData);
+    }
+
+    // Update User
+    const userUpdate = {};
+    if (email) userUpdate.email = email;
+    if (fullName) userUpdate.fullName = fullName;
+    if (mobile) userUpdate.mobile = mobile;
+    if (gender) userUpdate.gender = gender;
+    
+    // Allow empty password to ignore, otherwise update (assuming hook hashes it)
+    if (req.body.password) {
+      userUpdate.password = req.body.password;
+    }
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    Object.assign(user, userUpdate);
+    await user.save();
+
+    let photo;
+    if (req.file) {
+      const result = await uploadBuffer(req.file);
+      photo = { url: result.secure_url, publicId: result.public_id };
+    }
+
+    const profile = await Profile.findOne({ user: userId });
+    if (!profile) return res.status(404).json({ message: "Profile not found" });
+
+    Object.assign(profile, profileData);
+    
+    if (photo) {
+      profile.photo = photo;
+    }
+    
+    profile.completionScore = calculateCompletion(profile);
+    await profile.save();
+
+    res.json({ message: "Client profile updated successfully", profile });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteClientProfile = async (req, res, next) => {
+  try {
+    const userId = req.params.id;
+    await Profile.findOneAndDelete({ user: userId });
+    await User.findByIdAndDelete(userId);
+    res.json({ message: "Profile and user deleted successfully" });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getAdminCreatedProfiles = async (req, res, next) => {
   try {
     const profiles = await Profile.find({ createdByAdmin: true })
@@ -318,6 +380,67 @@ export const getAdminChatDetails = async (req, res, next) => {
       .populate("messages.sender", "fullName fullNameTamil");
     if (!chat) return res.status(404).json({ message: "Chat not found" });
     res.json(chat);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateGpayQr = async (req, res, next) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: "QR Code image is required" });
+    const result = await uploadBuffer(req.file);
+    const settings = await Settings.findOneAndUpdate(
+      {},
+      { gpayQrUrl: result.secure_url },
+      { new: true, upsert: true }
+    );
+    res.json({ settings, message: "GPay QR updated successfully" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getPendingSubscriptions = async (req, res, next) => {
+  try {
+    const subscriptions = await Subscription.find({ status: "Pending" })
+      .populate("user", "fullName email mobile")
+      .sort("-createdAt");
+    res.json(subscriptions);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const approveSubscription = async (req, res, next) => {
+  try {
+    const subscription = await Subscription.findById(req.params.id);
+    if (!subscription) return res.status(404).json({ message: "Subscription not found" });
+
+    let days = 0;
+    if (subscription.plan === "Silver") days = 30;
+    if (subscription.plan === "Gold") days = 90;
+    if (subscription.plan === "Diamond") days = 365;
+
+    subscription.status = "Active";
+    subscription.expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+    await subscription.save();
+
+    await User.findByIdAndUpdate(subscription.user, { isPremium: true });
+
+    res.json({ message: "Subscription approved", subscription });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const rejectSubscription = async (req, res, next) => {
+  try {
+    const subscription = await Subscription.findByIdAndUpdate(
+      req.params.id,
+      { status: "Rejected" },
+      { new: true }
+    );
+    res.json({ message: "Subscription rejected", subscription });
   } catch (error) {
     next(error);
   }

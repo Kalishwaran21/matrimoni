@@ -209,7 +209,7 @@ export default function Interests() {
                 {/* Photo / Avatar */}
                 {personProfile ? (
                   <Link
-                    to={`/profile/${personProfile._id}`}
+                    to={`/profile/${personProfile.profileId || personProfile._id}`}
                     className="relative h-28 w-28 shrink-0 overflow-hidden rounded-xl border border-rose-100 bg-rose-50 flex items-center justify-center group"
                   >
                     {photoUrl ? (
@@ -238,7 +238,7 @@ export default function Interests() {
                     <div className="flex flex-wrap items-center gap-2">
                       {personProfile ? (
                         <Link
-                          to={`/profile/${personProfile._id}`}
+                          to={`/profile/${personProfile.profileId || personProfile._id}`}
                           className="text-lg font-black text-slate-950 hover:text-maroon-700 transition"
                         >
                           {formatName(person, language)}
@@ -320,7 +320,7 @@ export default function Interests() {
                     </p>
                   </div>
 
-                  {/* Actions buttons */}
+              {/* Actions buttons */}
                   {isReceived && item.status === "Pending" && (
                     <div className="mt-4 flex items-center gap-3">
                       <button

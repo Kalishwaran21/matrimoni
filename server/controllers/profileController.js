@@ -74,10 +74,16 @@ export const upsertProfile = async (req, res, next) => {
     // Keep existing photo if no new photo uploaded
     const finalPhoto = newPhoto || (existing ? existing.photo : undefined);
 
+    let finalProfileId = existing?.profileId;
+    if (!finalProfileId) {
+      const crypto = await import("crypto");
+      finalProfileId = "SM-" + crypto.randomBytes(3).toString("hex").toUpperCase();
+    }
+
     const isApproved = existing ? existing.isApproved : false;
     const profile = await Profile.findOneAndUpdate(
       { user: req.user._id },
-      { ...updates, user: req.user._id, photo: finalPhoto, isApproved, isSubmitted: true },
+      { ...updates, user: req.user._id, photo: finalPhoto, isApproved, isSubmitted: true, profileId: finalProfileId },
       { new: true, upsert: true, runValidators: true }
     );
 
@@ -87,7 +93,6 @@ export const upsertProfile = async (req, res, next) => {
     if (updates.basic?.name || updates.basic?.nameTamil || updates.basic?.gender) {
       const u = {};
       if (updates.basic?.name) u.fullName = updates.basic.name;
-      if (updates.basic?.nameTamil) u.fullNameTamil = updates.basic.nameTamil;
       if (updates.basic?.gender) u.gender = updates.basic.gender;
       
       const updatedUser = await User.findByIdAndUpdate(req.user._id, u, { new: true });
@@ -111,7 +116,11 @@ export const upsertProfile = async (req, res, next) => {
 
 export const getProfile = async (req, res, next) => {
   try {
-    const profile = await Profile.findById(req.params.id).populate("user", "fullName email mobile gender isPremium lastSeenAt");
+    const mongoose = await import("mongoose");
+    const isObjectId = mongoose.isValidObjectId(req.params.id);
+    const query = isObjectId ? { _id: req.params.id } : { profileId: req.params.id };
+
+    const profile = await Profile.findOne(query).populate("user", "fullName email mobile gender isPremium lastSeenAt");
     if (!profile) {
       return res.status(404).json({ message: "Profile not found" });
     }

@@ -5,3 +5,6 @@ dist
 .DS_Store
 npm-debug.log*
 coverage
+
+sample_*.json
+scraped_*.json

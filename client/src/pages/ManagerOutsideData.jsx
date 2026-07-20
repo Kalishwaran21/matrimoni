@@ -1,24 +1,27 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Save, Upload, Camera, Download, Eye, X, ShieldCheck, Mail, Phone, Lock, Edit } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import html2canvas from "html2canvas";
 import { api } from "../services/api";
 import { toast } from "../components/Toast";
 import Spinner from "../components/Spinner";
 import { DATA } from "../utils/constants";
-import { useAuth } from "../context/AuthContext";
+
 import { useLanguage } from "../context/LanguageContext";
 
 const TABS = ["basic", "religion", "location", "education", "career", "family", "contact", "horoscope", "assets", "about", "photos", "preferences"];
 const initial = Object.fromEntries(TABS.map((s) => [s, s === "about" ? "" : {}]));
 
-export default function Profile() {
+export default function ManagerOutsideData({ editMode = false }) {
   const navigate = useNavigate();
-  const { user, updateUser } = useAuth();
+  const { id } = useParams();
+  const [loading, setLoading] = useState(editMode);
+  
   const { t, language } = useLanguage();
   const [form, setForm] = useState(initial);
   const [photoFile, setPhotoFile] = useState(null);
   const [existingPhoto, setExistingPhoto] = useState(null);
+  const [credentials, setCredentials] = useState({ fullName: "", email: "", mobile: "", password: "", gender: "" });
   const [saving, setSaving] = useState(false);
   const [preview, setPreview] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -31,39 +34,7 @@ export default function Profile() {
   const cardRef = useRef(null);
 
   useEffect(() => {
-    api.get("/profile/me").then(({ data }) => {
-      if (data.profile) {
-        const next = { ...initial };
-        TABS.forEach((s) => {
-          if (s === "about") {
-            next.about = data.profile.about || "";
-          } else {
-            next[s] = data.profile[s] || {};
-          }
-        });
-        
-        // Populate names from user object if missing in profile
-        if (!next.basic.name && user?.fullName) next.basic.name = user.fullName;
-        if (!next.basic.nameTamil && user?.fullNameTamil) next.basic.nameTamil = user.fullNameTamil;
-
-        setForm(next);
-        setExistingPhoto(data.profile.photo || null);
-        setIsEditMode(!data.profile.isSubmitted);
-        setIsApproved(data.profile.isApproved || false);
-
-        if (data.profile.basic?.dob) {
-          const dobDate = new Date(data.profile.basic.dob);
-          if (!isNaN(dobDate.getTime())) {
-            setDobDay(dobDate.getDate());
-            setDobMonth(dobDate.getMonth() + 1); // 1-12
-            setDobYear(dobDate.getFullYear());
-          }
-        }
-      } else {
-        setIsEditMode(true);
-      }
-    });
-  }, []);
+    }, []);
 
   const update = (section, field, value) => {
     setForm((cur) => {
@@ -113,40 +84,43 @@ export default function Profile() {
     setPreview(null);
   };
 
-  const submit = async (e) => {
+    const submit = async (e) => {
     e.preventDefault();
     setSaving(true);
 
     const formData = new FormData();
-    formData.append("updates", JSON.stringify(form));
+    formData.append("fullName", form.basic?.name || "");
+    formData.append("email", form.contact?.email || credentials.email || "");
+    formData.append("mobile", credentials.mobile || form.contact?.phone || "");
+    formData.append("password", credentials.password);
+    formData.append("gender", form.basic?.gender || "");
+    formData.append("profileData", JSON.stringify(form));
+
     if (photoFile) {
       formData.append("photo", photoFile);
     }
 
     try {
-      const { data } = await api.post("/profile", formData, {
+      if (editMode && id) {
+         await api.put("/admin/users/" + id, formData, {
+           headers: { "Content-Type": "multipart/form-data" }
+         });
+         toast.success(language === "en" ? "User profile updated successfully!" : "????? ????????? ??????????? ???????????????????!");
+         navigate("/manager/created-profiles");
+         return;
+      }
+
+      await api.post("/admin/users/create", formData, {
         headers: { "Content-Type": "multipart/form-data" }
       });
-      updateUser({ ...data.user });
-      setForm((cur) => {
-        const next = { ...cur };
-        TABS.forEach((s) => {
-          if (s === "about") {
-            next.about = data.profile.about || "";
-          } else {
-            next[s] = data.profile[s] || {};
-          }
-        });
-        return next;
-      });
-      setExistingPhoto(data.profile.photo || null);
+      setForm(initial);
+      setCredentials({ fullName: "", email: "", mobile: "", password: "", gender: "" });
       setPhotoFile(null);
       setPreview(null);
-      setIsEditMode(false);
-      toast.success(language === "en" ? "Profile saved successfully!" : "சுயவிவரம் வெற்றிகரமாக சேமிக்கப்பட்டது!");
+      toast.success(language === "en" ? "User profile created successfully!" : "பயனர் சுயவிவரம் வெற்றிகரமாக உருவாக்கப்பட்டது!");
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
-      toast.error(err.response?.data?.message || (language === "en" ? "Failed to save profile." : "சுயவிவரத்தை சேமிக்க முடியவில்லை."));
+      toast.error(err.response?.data?.message || (language === "en" ? "Failed to create profile." : "சுயவிவரத்தை உருவாக்க முடியவில்லை."));
     } finally {
       setSaving(false);
     }
@@ -165,7 +139,7 @@ export default function Profile() {
         backgroundColor: "#fff5f8"
       });
       const link = document.createElement("a");
-      const nameSlug = (form.basic?.name || user?.fullName || "profile").replace(/\s+/g, "_").toLowerCase();
+      const nameSlug = (form.basic?.name || "profile").replace(/\s+/g, "_").toLowerCase();
       link.download = `matrimony_${nameSlug}.png`;
       link.href = canvas.toDataURL("image/png");
       link.click();
@@ -191,7 +165,7 @@ export default function Profile() {
   const fmt = (n) => (n ? parseInt(n).toLocaleString("en-IN") : "—");
   const cardPhoto = preview || existingPhoto?.url || "";
   const tagline = [form.career?.jobTitle, form.location?.city].filter(Boolean).join(" • ") || "—";
-  const profileId = `M${(user?._id || "").substring(18).toUpperCase()}`;
+  const profileId = "MNEWUSER";
 
   return (
     <form onSubmit={submit} className="grid gap-6 animate-fade-up max-w-4xl mx-auto">
@@ -228,6 +202,53 @@ export default function Profile() {
           )}
         </div>
       </div>
+
+            {/* ── ACCOUNT REGISTRATION ── */}
+      <section className="panel">
+        <h2 className="mb-5 text-xl font-black text-maroon-800 flex items-center gap-2">
+          <span>📝</span> {language === "en" ? "Account Registration" : "கணக்கு பதிவு"}
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <label className="flex flex-col gap-1.5">
+            <span className="label">{language === "en" ? "Login Mobile Number" : "உள்நுழைவு மொபைல் எண்"} *</span>
+            <input
+              className="field mt-1"
+              type="tel"
+              required
+              value={credentials.mobile}
+              onChange={(e) => {
+                 setCredentials(c => ({...c, mobile: e.target.value}));
+                 update("contact", "phone", e.target.value);
+              }}
+              placeholder="9876543210"
+            />
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="label">{language === "en" ? "Login Password" : "உள்நுழைவு கடவுச்சொல்"} *</span>
+            <input
+              className="field mt-1"
+              type="text"
+              required
+              value={credentials.password}
+              onChange={(e) => setCredentials(c => ({...c, password: e.target.value}))}
+              placeholder="Min 6 characters"
+            />
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="label">{language === "en" ? "Login Email (Optional)" : "உள்நுழைவு மின்னஞ்சல் (விருப்பம்)"}</span>
+            <input
+              className="field mt-1"
+              type="email"
+              value={credentials.email}
+              onChange={(e) => {
+                setCredentials(c => ({...c, email: e.target.value}));
+                update("contact", "email", e.target.value);
+              }}
+              placeholder="example@mail.com"
+            />
+          </label>
+        </div>
+      </section>
 
       {/* ── SECTION 1: Profile Photo ── */}
       <section className="panel">

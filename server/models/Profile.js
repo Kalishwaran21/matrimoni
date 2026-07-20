@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 const profileSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, unique: true },
+    profileId: { type: String, unique: true, sparse: true },
     basic: {
       name: String,
       nameTamil: String,
@@ -39,13 +40,16 @@ const profileSchema = new mongoose.Schema(
       salary: Number
     },
     family: {
+      familyType: String,
+      fatherName: String,
       fatherOccupation: String,
+      motherName: String,
       motherOccupation: String,
-      siblings: Number,
-      familyType: String
+      siblings: Number
     },
     horoscope: {
       rasi: String,
+      lagnam: String,
       nakshatra: String,
       dosham: String
     },

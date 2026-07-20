@@ -747,6 +747,18 @@ export default function AdminCreateProfile() {
                 </select>
               </label>
               <label className="flex flex-col gap-1.5">
+                <span className="label">Lagnam (லக்னம்) *</span>
+                <select
+                  className="field mt-1"
+                  required
+                  value={form.horoscope?.lagnam || ""}
+                  onChange={(e) => updateProfile("horoscope", "lagnam", e.target.value)}
+                >
+                  <option value="">Select Lagnam</option>
+                  {Object.keys(DATA.rasiData).map((r) => <option key={r} value={r}>{r}</option>)}
+                </select>
+              </label>
+              <label className="flex flex-col gap-1.5">
                 <span className="label">{t("fieldStar")} *</span>
                 <select
                   className="field mt-1"

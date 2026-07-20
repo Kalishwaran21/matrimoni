@@ -86,8 +86,8 @@ export default function AdminClientInterests() {
                         Your Client
                       </span>
                       {clientProfile?._id ? (
-                        <Link to={`/profile/${clientProfile._id}`} className="font-bold text-slate-900 text-sm mt-1 hover:text-maroon-600 hover:underline flex items-center gap-1 w-fit">
-                          {client?.fullName} <ExternalLink size={12} />
+                        <Link to={`/profile/${clientProfile.profileId || clientProfile._id}`} className="font-bold text-slate-900 text-sm mt-1 hover:text-maroon-600 hover:underline flex items-center gap-1 w-fit">
+                          {clientProfile.basic?.name || client?.fullName} <ExternalLink size={12} />
                         </Link>
                       ) : (
                         <h4 className="font-bold text-slate-900 text-sm mt-1">{client?.fullName}</h4>
@@ -125,8 +125,8 @@ export default function AdminClientInterests() {
                         {isClientSender ? "Receiver" : "Sender / Match"}
                       </span>
                       {senderProfile?._id ? (
-                        <Link to={`/profile/${senderProfile._id}`} className="font-bold text-slate-900 text-sm mt-1 hover:text-slate-600 hover:underline flex items-center gap-1 w-fit">
-                          {sender?.fullName} <ExternalLink size={12} />
+                        <Link to={`/profile/${senderProfile.profileId || senderProfile._id}`} className="font-bold text-slate-900 text-sm mt-1 hover:text-slate-600 hover:underline flex items-center gap-1 w-fit">
+                          {senderProfile.basic?.name || sender?.fullName} <ExternalLink size={12} />
                         </Link>
                       ) : (
                         <h4 className="font-bold text-slate-900 text-sm mt-1">{sender?.fullName}</h4>

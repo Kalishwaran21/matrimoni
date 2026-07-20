@@ -1,5 +1,5 @@
 import React from "react";
-import { BarChart3, Flag, LayoutDashboard, Users, ShieldCheck, UserPlus, HeartHandshake, UserCircle, Settings, MessageSquare } from "lucide-react";
+import { BarChart3, DatabaseZap, Flag, LayoutDashboard, Users, ShieldCheck, UserPlus, HeartHandshake, UserCircle, Settings, MessageSquare } from "lucide-react";
 import { NavLink, Outlet } from "react-router-dom";
 import Navbar from "../components/Navbar";
 
@@ -10,6 +10,7 @@ const adminLinks = [
   ["Client Interests", "/admin/client-interests", HeartHandshake],
   ["Created Profiles", "/admin/created-profiles", UserCircle],
   ["Approvals", "/admin/approvals", ShieldCheck],
+  ["Payments", "/admin/payments", DatabaseZap],
   ["Reports", "/admin/reports", Flag],
   ["Analytics", "/admin/analytics", BarChart3],
   ["Settings", "/admin/settings", Settings],

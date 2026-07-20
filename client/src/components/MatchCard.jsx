@@ -90,7 +90,7 @@ export default function MatchCard({ item, onInterest }) {
 
         {/* Actions */}
         <div className="mt-5 flex gap-2">
-          <Link to={`/profile/${profile._id}`} className="btn-secondary flex-1 !py-2.5 text-xs">
+          <Link to={`/profile/${profile.profileId || profile._id}`} className="btn-secondary flex-1 !py-2.5 text-xs">
             {t("viewProfile")}
           </Link>
           <button

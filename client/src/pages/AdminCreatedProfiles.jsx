@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Eye, Search, ShieldCheck } from "lucide-react";
+import { Eye, Search, ShieldCheck, Edit, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { api } from "../services/api";
 import { FullPageSpinner } from "../components/Spinner";
@@ -26,6 +26,19 @@ export default function AdminCreatedProfiles() {
   useEffect(() => {
     load();
   }, []);
+
+  const handleDelete = async (id) => {
+    if (!id) return;
+    if (!window.confirm("Are you sure you want to delete this profile permanently?")) return;
+    
+    try {
+      await api.delete(`/admin/users/${id}`);
+      toast.success("Profile deleted successfully");
+      setProfiles(prev => prev.filter(p => p.user?._id !== id));
+    } catch (err) {
+      toast.error("Failed to delete profile");
+    }
+  };
 
   const filtered = profiles.filter((p) => {
     const name = p.basic?.name || p.user?.fullName || "";
@@ -125,12 +138,27 @@ export default function AdminCreatedProfiles() {
                 {/* Actions */}
                 <div className="flex gap-2 w-full md:w-auto mt-2 md:mt-0">
                   <Link
-                    to={`/profile/${profile._id}`}
-                    className="btn-secondary !py-2 !px-4 text-xs flex items-center gap-1.5 flex-1 md:flex-initial justify-center"
+                    to={`/profile/${profile.profileId || profile._id}`}
+                    target="_blank"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+                    title="View Profile"
                   >
                     <Eye size={14} />
-                    View Profile
                   </Link>
+                  <Link
+                    to={`/manager/edit/${profile.user?._id}`}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+                    title="Edit Profile"
+                  >
+                    <Edit size={14} />
+                  </Link>
+                  <button
+                    onClick={() => handleDelete(profile.user?._id)}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 transition-colors hover:bg-rose-100"
+                    title="Delete Profile"
+                  >
+                    <Trash2 size={14} />
+                  </button>
                 </div>
               </div>
             </div>

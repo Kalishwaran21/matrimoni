@@ -286,7 +286,7 @@ export default function ProfileDetail() {
             </span>
             <p className="font-semibold text-slate-800">Horoscope Details Locked</p>
             <p className="mt-1 text-sm text-slate-500 max-w-sm">
-              Connect and accept each other's interest to automatically unlock horoscope details (Rasi, Nakshatra, Dosham).
+              Connect and accept each other's interest to automatically unlock horoscope details (Rasi, Lagnam, Nakshatra, Dosham).
             </p>
           </div>
         )}

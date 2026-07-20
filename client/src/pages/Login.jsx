@@ -18,7 +18,7 @@ export default function Login() {
     try {
       const user = await login(form);
       toast.success(language === "en" ? "Welcome back!" : "மீண்டும் உங்களை வரவேற்கிறோம்!");
-      navigate(user.role === "admin" ? "/admin" : "/matches");
+      navigate(user.role === "admin" ? "/admin" : user.role === "manager" ? "/manager" : "/matches");
     } catch (err) {
       toast.error(err.response?.data?.message || (language === "en" ? "Login failed. Please check your credentials." : "உள்நுழைவு தோல்வி. உங்கள் மின்னஞ்சல் அல்லது கடவுச்சொல்லை சரிபார்க்கவும்."));
     }

@@ -63,7 +63,7 @@ export const DATA = {
   physicalStatus: ["Normal","Physically Challenged","Hearing Impaired","Speech Impaired","Visually Challenged","Differently Abled"],
   colors: ["Very Fair", "Fair", "Wheatish", "Medium", "Dark"],
   religions: ["Hindu","Muslim","Christian","Sikh","Jain","Buddhist","Zoroastrian","Jewish","Others","No Bar"],
-  education: ["SSLC","HSC","Diploma","B.E","B.Tech","B.Sc","B.Com","BBA","BCA","BA","MBBS","BDS","B.Pharm","LLB","M.E","M.Tech","M.Sc","M.Com","MBA","MCA","MA","M.Pharm","MD","MS","M.Phil","PhD","Doctorate"],
+  education: ["No Education","SSLC","HSC","Diploma","B.E","B.Tech","B.Sc","B.Com","BBA","BCA","BA","MBBS","BDS","B.Pharm","LLB","M.E","M.Tech","M.Sc","M.Com","MBA","MCA","MA","M.Pharm","MD","MS","M.Phil","PhD","Doctorate"],
   professions: ["Software Engineer","Developer","Tester","Data Analyst","Data Scientist","AI Engineer","DevOps Engineer","Government Employee","Teacher","Professor","Doctor","Dentist","Nurse","Pharmacist","Business Owner","Entrepreneur","Startup Founder","Trader","Civil Engineer","Mechanical Engineer","Electrical Engineer","CA","Accountant","Auditor","Banker","Lawyer","Architect","Police","Army","Farmer","Driver","Self Employed","Private Employee","Not Working"],
   locations: ["India","USA","UK","Canada","Australia","Singapore","UAE","Germany","France","Italy","Japan","New Zealand","Others"],
   statesByCountry: {

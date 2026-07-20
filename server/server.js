@@ -36,8 +36,10 @@ if (process.env.CLIENT_URL) {
 }
 
 const checkOrigin = (origin, callback) => {
-  // Always return true to echo back the exact origin
-  return callback(null, true);
+  if (!origin || allowedOrigins.includes(origin)) {
+    return callback(null, true);
+  }
+  return callback(new Error("Not allowed by CORS"));
 };
 
 const app = express();
@@ -60,7 +62,7 @@ app.use(
     credentials: true
   })
 );
-app.use(express.json({ limit: "2mb" }));
+app.use(express.json({ limit: "50mb" }));
 app.use(cookieParser());
 app.use(
   rateLimit({
@@ -178,7 +180,7 @@ const ensureAdminUser = async () => {
         isPremium: true
       });
       console.log(`Auto-created default admin user: ${adminEmail}`);
-    } else {
+    } else { 
       let needsSave = false;
       if (existingAdmin.role !== "admin") {
         existingAdmin.role = "admin";

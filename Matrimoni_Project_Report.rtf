@@ -1,0 +1,90 @@
+{\rtf1\ansi\deff0
+{\fonttbl{\f0\froman\fcharset0 Times New Roman;}{\f1\fswiss\fcharset0 Arial;}{\f2\fmodern\fcharset0 Courier New;}}
+{\colortbl;\red128\green0\blue0;\red68\green68\blue68;\red255\green255\blue255;\red34\green34\blue34;}
+\paperw12240\paperh15840\margl1440\margr1440\margt1440\margb1440
+\f1\fs24\cf4
+
+{\f1\fs40\b\cf1 Soulmate Matrimony}\par
+{\f1\fs28\b\cf1 User Manual \& Feature Guide}\par
+\par
+{\f1\fs22\cf2 Date: July 18, 2026}\par
+{\f1\fs22\cf2 Platform: Soulmate Matrimony (MERN Stack Web Application)}\par
+{\f1\fs22\cf2 Directory: C:\textbackslash Users\textbackslash ELCOT\textbackslash Documents\textbackslash matrimoni}\par
+\par\par
+
+{\f1\fs28\b\cf1 1. Overview}\par
+\par
+Soulmate Matrimony is a full-stack modern matrimony web application built for Indian matchmaking. It provides secure user registration, detailed profile management with astrological data, smart match search, real-time chat, photo sharing, and an admin moderation panel. The platform is bilingual and designed to serve the Tamil-speaking community and beyond.\par
+\par\par
+
+{\f1\fs28\b\cf1 2. Key Features}\par
+\par
+{\f1\fs24\b 2.1 User Registration}\par
+New users can create a free account by providing their Full Name, Email Address, Mobile Number, Gender, and a secure Password. The system immediately logs the user in and redirects them to build their matrimony profile.\par
+\par
+{\f1\fs24\b 2.2 Secure Login}\par
+Existing users sign in with their Email and Password. The system uses encrypted passwords and JWT tokens to keep sessions secure. Accounts that have been blocked by the Admin cannot log in.\par
+\par
+{\f1\fs24\b 2.3 Profile Creation Dashboard}\par
+This is the heart of the application. Users build their matrimony profile across several organized sections:\par
+\par
+    {\b Profile Photo:} Upload a clear personal photo (JPG or PNG, max 5MB). The image previews instantly.\par
+\par
+    {\b Personal Information:} Enter Full Name, Age, Date of Birth, Gender, Marital Status (Never Married, Divorced, etc.), and Mother Tongue. Religion is selected first, which then dynamically loads only the castes relevant to that religion. Sub-caste or Gotram can also be entered.\par
+\par
+    {\b Contact & Location:} Enter active Phone Number, Email, Native Place (ancestral hometown), and Current Place of residence.\par
+\par
+    {\b Horoscope Details:} Select your Rasi (Moon Sign). Based on the selected Rasi, only the associated Natchathirams (Stars) are shown for selection. Users also indicate their Dosham status.\par
+\par
+    {\b Education & Career:} Specify education qualification, college, job title, company name, and monthly income.\par
+\par
+    {\b Family Background:} Provide Father Name and Occupation, Mother Name and Occupation, and number of siblings.\par
+\par
+{\f1\fs24\b 2.4 Profile Card PNG Download}\par
+After filling the form, users can click {\b Preview Card} to see a beautifully formatted matrimony card. Clicking {\b Download as PNG} saves this card as an image directly to their device, which can be shared on WhatsApp or with family members who want to see the profile at a glance.\par
+\par
+{\f1\fs24\b 2.5 Admin Approval Workflow}\par
+Every submitted profile starts with a status of {\i "Pending Approval"}. An Administrator must review and approve the profile before it becomes visible in public searches. This prevents fake or spam profiles from appearing on the platform.\par
+\par
+{\f1\fs24\b 2.6 Matches & Search (Phase 5)}\par
+Once a profile is approved, users can browse matches filtered by Age Range, Religion, Caste, Education Level, and Location. Each result shows a profile summary card. Clicking a card opens the full profile with all personal, professional, and horoscope details.\par
+\par
+{\f1\fs24\b 2.7 Real-Time Chat (Infrastructure Ready)}\par
+The platform has Socket.io integrated on the server. When two users mutually express interest, a private chat room is created. Messages are delivered instantly without page refresh.\par
+\par
+{\f1\fs24\b 2.8 Admin Panel (Phase 4)}\par
+Admin users (with role = admin in the database) have access to a special panel where they can: Approve or reject submitted profiles, Block or unblock user accounts, and Monitor platform activity.\par
+\par\par
+
+{\f1\fs28\b\cf1 3. How Each Section Is Used (User Flow)}\par
+\par
+{\b Step 1:} User visits the website and clicks {\b Register}.\par
+{\b Step 2:} User fills in basic account details and submits. They are now logged in.\par
+{\b Step 3:} User is taken to the {\b Create Profile} page automatically.\par
+{\b Step 4:} User fills all sections (Personal, Contact, Horoscope) and uploads their photo.\par
+{\b Step 5:} User optionally previews and downloads their profile card as a PNG.\par
+{\b Step 6:} User clicks {\b Send to Admin} to submit the profile for review.\par
+{\b Step 7:} Admin logs in, reviews the profile, and approves it.\par
+{\b Step 8:} Approved profile is now visible to other registered users in {\b Matches}.\par
+{\b Step 9:} Interested users can initiate a chat.\par
+\par\par
+
+{\f1\fs28\b\cf1 4. Technology Stack}\par
+\par
+{\b Frontend:} React 19, Vite, Tailwind CSS, React Router, Axios, Socket.io Client, html2canvas\par
+{\b Backend:} Node.js, Express.js, MongoDB, Mongoose, JWT, Bcrypt, Socket.io\par
+{\b Integrations:} Cloudinary (Profile Photos), Razorpay (Subscriptions - planned)\par
+\par\par
+
+{\f1\fs28\b\cf1 5. Folder Structure}\par
+\par
+{\f2\fs20 matrimoni/}\par
+{\f2\fs20 |\endash\endash  client/         (React Frontend)}\par
+{\f2\fs20 |\endash\endash  server/         (Node.js Backend API)}\par
+{\f2\fs20 |\endash\endash  scraper_tools/  (Offline data scraping scripts)}\par
+{\f2\fs20 |\endash\endash  README.md}\par
+{\f2\fs20 |\endash\endash  package.json}\par
+\par\par
+
+{\f1\fs20\cf2 End of Report - Soulmate Matrimony Platform - July 2026}\par
+}

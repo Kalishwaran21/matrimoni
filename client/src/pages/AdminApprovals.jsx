@@ -131,8 +131,9 @@ export default function AdminApprovals() {
                 {/* Actions */}
                 <div className="flex gap-2 w-full md:w-auto mt-2 md:mt-0">
                   <Link
-                    to={`/profile/${profile._id}`}
-                    className="btn-secondary !py-2 !px-3 text-xs flex items-center gap-1.5 flex-1 md:flex-initial justify-center"
+                    to={`/profile/${profile.profileId || profile._id}`}
+                    target="_blank"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
                   >
                     <Eye size={14} />
                     View Details

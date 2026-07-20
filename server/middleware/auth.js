@@ -35,6 +35,22 @@ export const adminOnly = (req, res, next) => {
   next();
 };
 
+export const managerOnly = (req, res, next) => {
+  if (req.user?.role !== "manager") {
+    return res.status(403).json({ message: "Manager access required" });
+  }
+
+  next();
+};
+
+export const managerOrAdmin = (req, res, next) => {
+  if (req.user?.role !== "manager" && req.user?.role !== "admin") {
+    return res.status(403).json({ message: "Admin or Manager access required" });
+  }
+
+  next();
+};
+
 export const signToken = (id) =>
   jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN || "7d"
