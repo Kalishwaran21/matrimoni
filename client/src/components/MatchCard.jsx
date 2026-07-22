@@ -27,6 +27,7 @@ export default function MatchCard({ item, onInterest }) {
           <img
             src={photo}
             alt={name}
+            loading="lazy"
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
@@ -76,7 +77,7 @@ export default function MatchCard({ item, onInterest }) {
         <div className="grid gap-1.5 text-sm text-slate-600">
           <span className="flex items-center gap-2">
             <MapPin size={14} className="text-maroon-400 shrink-0" />
-            {profile.location?.city || (language === "en" ? "Location pending" : "இருப்பிடம் குறிப்பிடப்படவில்லை")}
+            {[profile.location?.city, profile.location?.district].filter(Boolean).join(", ") || (language === "en" ? "Location pending" : "இருப்பிடம் குறிப்பிடப்படவில்லை")}
           </span>
           <span className="flex items-center gap-2">
             <GraduationCap size={14} className="text-maroon-400 shrink-0" />
@@ -90,7 +91,10 @@ export default function MatchCard({ item, onInterest }) {
 
         {/* Actions */}
         <div className="mt-5 flex gap-2">
-          <Link to={`/profile/${profile.profileId || profile._id}`} className="btn-secondary flex-1 !py-2.5 text-xs">
+          <Link
+            to={`/profile/${profile.profileId || profile._id}`}
+            className="btn-secondary flex-1 !py-2.5 text-xs"
+          >
             {t("viewProfile")}
           </Link>
           <button

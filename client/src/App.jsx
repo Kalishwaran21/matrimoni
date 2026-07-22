@@ -1,39 +1,44 @@
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { ToastContainer } from "./components/Toast";
+import { FullPageSpinner } from "./components/Spinner";
+
+// Layouts (Keep synchronous for quick initial shell render)
 import AdminLayout from "./layouts/AdminLayout";
 import AppLayout from "./layouts/AppLayout";
 import PublicLayout from "./layouts/PublicLayout";
-import About from "./pages/About";
-import AdminAnalytics from "./pages/AdminAnalytics";
-import AdminDashboard from "./pages/AdminDashboard";
-import AdminReports from "./pages/AdminReports";
-import AdminUsers from "./pages/AdminUsers";
-import AdminApprovals from "./pages/AdminApprovals";
-import AdminCreatedProfiles from "./pages/AdminCreatedProfiles";
-import AdminCreateProfile from "./pages/AdminCreateProfile";
-import AdminClientInterests from "./pages/AdminClientInterests";
-import AdminSettings from "./pages/AdminSettings";
-import AdminPayments from "./pages/AdminPayments";
-import AdminChats from "./pages/AdminChats";
-import AdminImportProfiles from "./pages/AdminImportProfiles";
 import ManagerLayout from "./layouts/ManagerLayout";
-import ManagerOutsideData from "./pages/ManagerOutsideData";
-import Chat from "./pages/Chat";
-import Contact from "./pages/Contact";
-import Dashboard from "./pages/Dashboard";
-import ForgotPassword from "./pages/ForgotPassword";
-import Home from "./pages/Home";
-import Interests from "./pages/Interests";
-import Login from "./pages/Login";
-import Pricing from "./pages/Pricing";
-import Profile from "./pages/Profile";
-import ProfileDetail from "./pages/ProfileDetail";
-import Register from "./pages/Register";
-import ResetPassword from "./pages/ResetPassword";
-import SearchMatches from "./pages/SearchMatches";
-import Subscription from "./pages/Subscription";
+
+// Pages (Lazy load to heavily optimize performance and reduce JS bundle size)
+const About = lazy(() => import("./pages/About"));
+const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const AdminReports = lazy(() => import("./pages/AdminReports"));
+const AdminUsers = lazy(() => import("./pages/AdminUsers"));
+const AdminApprovals = lazy(() => import("./pages/AdminApprovals"));
+const AdminCreatedProfiles = lazy(() => import("./pages/AdminCreatedProfiles"));
+const AdminCreateProfile = lazy(() => import("./pages/AdminCreateProfile"));
+const AdminClientInterests = lazy(() => import("./pages/AdminClientInterests"));
+const AdminSettings = lazy(() => import("./pages/AdminSettings"));
+const AdminPayments = lazy(() => import("./pages/AdminPayments"));
+const AdminChats = lazy(() => import("./pages/AdminChats"));
+const AdminImportProfiles = lazy(() => import("./pages/AdminImportProfiles"));
+const ManagerOutsideData = lazy(() => import("./pages/ManagerOutsideData"));
+const Chat = lazy(() => import("./pages/Chat"));
+const Contact = lazy(() => import("./pages/Contact"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const Home = lazy(() => import("./pages/Home"));
+const Interests = lazy(() => import("./pages/Interests"));
+const Login = lazy(() => import("./pages/Login"));
+const Pricing = lazy(() => import("./pages/Pricing"));
+const Profile = lazy(() => import("./pages/Profile"));
+const ProfileDetail = lazy(() => import("./pages/ProfileDetail"));
+const Register = lazy(() => import("./pages/Register"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const SearchMatches = lazy(() => import("./pages/SearchMatches"));
+const Subscription = lazy(() => import("./pages/Subscription"));
 
 export default function App() {
   return (
@@ -41,7 +46,8 @@ export default function App() {
       {/* Global toast notifications rendered on top of everything */}
       <ToastContainer />
 
-      <Routes>
+      <Suspense fallback={<FullPageSpinner />}>
+        <Routes>
         <Route element={<PublicLayout />}>
           <Route index element={<Home />} />
           <Route path="about" element={<About />} />
@@ -92,7 +98,8 @@ export default function App() {
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+        </Routes>
+      </Suspense>
     </>
   );
 }

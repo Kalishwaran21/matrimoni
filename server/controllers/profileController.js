@@ -32,6 +32,18 @@ const completionFields = [
 
 const getByPath = (source, path) => path.split(".").reduce((obj, key) => obj?.[key], source);
 
+export const calculateAge = (dob) => {
+  if (!dob) return null;
+  const today = new Date();
+  const birthDate = new Date(dob);
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age;
+};
+
 const calculateCompletion = (profile) => {
   const filled = completionFields.filter((path) => Boolean(getByPath(profile, path))).length;
   const photoScore = profile.photo?.url ? 1 : 0;
@@ -120,12 +132,16 @@ export const getProfile = async (req, res, next) => {
     const isObjectId = mongoose.isValidObjectId(req.params.id);
     const query = isObjectId ? { _id: req.params.id } : { profileId: req.params.id };
 
-    const profile = await Profile.findOne(query).populate("user", "fullName email mobile gender isPremium lastSeenAt");
-    if (!profile) {
+    const profileObj = await Profile.findOne(query).populate("user", "fullName fullNameTamil email mobile gender isPremium lastSeenAt").lean();
+    if (!profileObj) {
       return res.status(404).json({ message: "Profile not found" });
     }
 
-    const isOwnProfile = String(profile.user._id) === String(req.user._id);
+    if (!profileObj.user) {
+      return res.status(404).json({ message: "User account for this profile no longer exists." });
+    }
+
+    const isOwnProfile = String(profileObj.user._id) === String(req.user._id);
     const isAdmin = req.user.role === "admin";
 
     let isContactShared = false;
@@ -135,11 +151,14 @@ export const getProfile = async (req, res, next) => {
     if (!isOwnProfile && !isAdmin) {
       interest = await Interest.findOne({
         $or: [
-          { from: req.user._id, to: profile.user._id },
-          { from: profile.user._id, to: req.user._id }
+          { from: req.user._id, to: profileObj.user._id },
+          { from: profileObj.user._id, to: req.user._id }
         ]
-      });
+      }).lean();
     }
+
+    const activeSub = await Subscription.findOne({ user: req.user._id, status: "Active" }).sort("-createdAt");
+    const userPlan = activeSub ? activeSub.plan : "Free";
 
     if (isOwnProfile || isAdmin || (interest && interest.status === "Accepted")) {
       isContactShared = true;
@@ -151,11 +170,9 @@ export const getProfile = async (req, res, next) => {
         usage = await DailyUsage.create({ user: req.user._id, date: today, profilesViewed: [] });
       }
 
-      const activeSub = await Subscription.findOne({ user: req.user._id, status: "Active" }).sort("-createdAt");
-      const userPlan = activeSub ? activeSub.plan : "Free";
       const viewLimit = PLAN_VIEW_LIMITS[userPlan] || PLAN_VIEW_LIMITS.Free;
 
-      const targetIdStr = String(profile.user._id);
+      const targetIdStr = String(profileObj.user._id);
       const alreadyViewed = usage.profilesViewed.some(id => String(id) === targetIdStr);
 
       if (alreadyViewed) {
@@ -166,7 +183,7 @@ export const getProfile = async (req, res, next) => {
           isContactShared = false;
         } else {
           // Has limit, allow and record
-          usage.profilesViewed.push(profile.user._id);
+          usage.profilesViewed.push(profileObj.user._id);
           await usage.save();
           isContactShared = true;
         }
@@ -175,7 +192,7 @@ export const getProfile = async (req, res, next) => {
       // Add Profile Viewed Notification
       if (req.user.role !== "admin") {
         const recent = await Notification.findOne({
-          user: profile.user._id,
+          user: profileObj.user._id,
           type: "Profile Viewed",
           message: { $regex: req.user.fullName },
           createdAt: { $gt: new Date(Date.now() - 3600000) }
@@ -183,7 +200,7 @@ export const getProfile = async (req, res, next) => {
         
         if (!recent) {
           await Notification.create({
-            user: profile.user._id,
+            user: profileObj.user._id,
             type: "Profile Viewed",
             title: "Someone viewed your profile",
             message: `${req.user.fullName} recently viewed your profile.`
@@ -191,8 +208,6 @@ export const getProfile = async (req, res, next) => {
         }
       }
     }
-
-    const profileObj = profile.toObject();
 
     // Redact if not shared (which is if limit exceeded and no accepted interest)
     if (!isContactShared) {
@@ -203,10 +218,16 @@ export const getProfile = async (req, res, next) => {
       profileObj.horoscope = undefined;
     }
 
+    // Calculate age dynamically
+    if (profileObj.basic && profileObj.basic.dob) {
+      profileObj.basic.age = calculateAge(profileObj.basic.dob);
+    }
+
     res.json({
       profile: profileObj,
       isContactShared,
       limitExceeded,
+      userPlan,
       interest: interest ? {
         _id: interest._id,
         from: interest.from,
@@ -221,7 +242,10 @@ export const getProfile = async (req, res, next) => {
 
 export const getMyProfile = async (req, res, next) => {
   try {
-    const profile = await Profile.findOne({ user: req.user._id }).populate("user", "fullName email mobile gender isPremium");
+    const profile = await Profile.findOne({ user: req.user._id }).populate("user", "fullName email mobile gender isPremium").lean();
+    if (profile && profile.basic && profile.basic.dob) {
+      profile.basic.age = calculateAge(profile.basic.dob);
+    }
     res.json({ profile });
   } catch (error) {
     next(error);

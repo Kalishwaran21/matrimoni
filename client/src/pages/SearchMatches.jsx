@@ -6,47 +6,61 @@ import { toast } from "../components/Toast";
 import { api } from "../services/api";
 import { useLanguage } from "../context/LanguageContext";
 import { formatName } from "../utils/transliterate";
+import { DATA } from "../utils/constants";
+
+const allCastesList = Array.from(new Set(Object.values(DATA.castes).flat())).sort();
+const religionList = Object.keys(DATA.castes);
+const allStatesList = DATA.statesByCountry["India"] || [];
+const jobCategoryList = DATA.professions || [];
 
 export default function SearchMatches() {
   const { t, language } = useLanguage();
   const [filters, setFilters] = useState({});
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(true);
+
+  // Pagination States
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalResults, setTotalResults] = useState(0);
 
   // Daily Match Popup States
   const [showPopup, setShowPopup] = useState(false);
   const [popupMatches, setPopupMatches] = useState([]);
   const [popupIndex, setPopupIndex] = useState(0);
 
-  const filterConfig = [
-    { key: "ageMin", label: t("prefMinAge"), type: "number", placeholder: "18" },
-    { key: "ageMax", label: t("prefMaxAge"), type: "number", placeholder: "45" },
-    { key: "religion", label: t("fieldReligion"), type: "text", placeholder: "e.g. Hindu" },
-    { key: "caste", label: t("fieldCaste"), type: "text", placeholder: "e.g. Nadar" },
-    { key: "city", label: t("fieldCity"), type: "text", placeholder: "e.g. Chennai" },
-    { key: "education", label: t("fieldEducation"), type: "text", placeholder: "e.g. B.Tech" },
-    { key: "job", label: t("fieldProfession"), type: "text", placeholder: "e.g. Developer" },
-    { key: "salaryMin", label: t("prefSalary"), type: "number", placeholder: "500000" }
-  ];
-
-  const search = async () => {
-    setLoading(true);
+  const search = async (pageNum = 1, append = false) => {
+    if (append) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+    }
     try {
       const clean = Object.fromEntries(
         Object.entries(filters).filter(([, v]) => v !== "" && v !== undefined)
       );
-      const { data } = await api.get("/search", { params: clean });
-      setResults(data.results || []);
+      const { data } = await api.get("/search", { params: { ...clean, page: pageNum } });
+      
+      if (append) {
+        setResults((prev) => [...prev, ...(data.results || [])]);
+      } else {
+        setResults(data.results || []);
+      }
+      setPage(data.pagination?.currentPage || 1);
+      setTotalPages(data.pagination?.totalPages || 1);
+      setTotalResults(data.pagination?.totalResults || 0);
     } catch {
       toast.error(language === "en" ? "Search failed. Please try again." : "தேடல் தோல்வியடைந்தது. மீண்டும் முயற்சிக்கவும்.");
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
   useEffect(() => {
-    search();
+    search(1, false);
     
     // Check first login of the day matching preferences
     const today = new Date().toISOString().split("T")[0];
@@ -99,7 +113,7 @@ export default function SearchMatches() {
 
   const reset = () => {
     setFilters({});
-    setTimeout(search, 50);
+    setTimeout(() => search(1, false), 50);
   };
 
   // Popup Profile fields
@@ -114,7 +128,7 @@ export default function SearchMatches() {
         <p className="label">{t("matches")}</p>
         <h1 className="mt-2 text-3xl font-black text-slate-950">{t("advancedSearch")}</h1>
         <p className="mt-1 text-sm text-slate-500">
-          {loading ? (language === "en" ? "Searching..." : "தேடப்படுகிறது...") : `${results.length} ${t("profilesFound")}`}
+          {loading ? (language === "en" ? "Searching..." : "தேடப்படுகிறது...") : `${totalResults} ${t("profilesFound")}`}
         </p>
       </div>
 
@@ -133,21 +147,140 @@ export default function SearchMatches() {
         </button>
 
         {filtersOpen && (
-          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {filterConfig.map(({ key, label, type, placeholder }) => (
-              <label key={key}>
-                <span className="label">{label}</span>
+          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {/* Age Range */}
+            <div>
+              <span className="label">{language === "en" ? "Age Range" : "வயது வரம்பு"}</span>
+              <div className="flex gap-2 mt-2">
+                <select
+                  className="field flex-1"
+                  value={filters.ageMin || ""}
+                  onChange={(e) => setFilters({ ...filters, ageMin: e.target.value })}
+                >
+                  <option value="">{language === "en" ? "Min Age" : "குறைந்தபட்ச வயது"}</option>
+                  {Array.from({ length: 43 }, (_, i) => 18 + i).map((a) => (
+                    <option key={a} value={a}>{a}</option>
+                  ))}
+                </select>
+                <select
+                  className="field flex-1"
+                  value={filters.ageMax || ""}
+                  onChange={(e) => setFilters({ ...filters, ageMax: e.target.value })}
+                >
+                  <option value="">{language === "en" ? "Max Age" : "அதிகபட்ச வயது"}</option>
+                  {Array.from({ length: 43 }, (_, i) => 18 + i).map((a) => (
+                    <option key={a} value={a}>{a}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Religion */}
+            <label>
+              <span className="label">{language === "en" ? "Religion" : "மதம்"}</span>
+              <select
+                className="field mt-2"
+                value={filters.religion || ""}
+                onChange={(e) => {
+                  const r = e.target.value;
+                  setFilters({ ...filters, religion: r, caste: "" });
+                }}
+              >
+                <option value="">{language === "en" ? "Select Religion" : "மதம் தேர்வு செய்க"}</option>
+                {religionList.map((r) => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
+            </label>
+
+            {/* Caste */}
+            <label>
+              <span className="label">{language === "en" ? "Caste" : "ஜாதி"}</span>
+              <select
+                className="field mt-2"
+                value={filters.caste || ""}
+                onChange={(e) => setFilters({ ...filters, caste: e.target.value })}
+              >
+                <option value="">{language === "en" ? "Select Caste" : "ஜாதி தேர்வு செய்க"}</option>
+                {(filters.religion ? (DATA.castes[filters.religion] || []) : allCastesList).map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </label>
+
+            {/* State */}
+            <label>
+              <span className="label">{language === "en" ? "State" : "மாநிலம்"}</span>
+              <select
+                className="field mt-2"
+                value={filters.state || ""}
+                onChange={(e) => {
+                  const s = e.target.value;
+                  setFilters({ ...filters, state: s, district: "" });
+                }}
+              >
+                <option value="">{language === "en" ? "Select State" : "மாநிலம் தேர்வு செய்க"}</option>
+                {allStatesList.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </label>
+
+            {/* District */}
+            <label>
+              <span className="label">{language === "en" ? "District" : "மாவட்டம்"}</span>
+              {filters.state === "Tamil Nadu" ? (
+                <select
+                  className="field mt-2"
+                  value={filters.district || ""}
+                  onChange={(e) => setFilters({ ...filters, district: e.target.value })}
+                >
+                  <option value="">{language === "en" ? "Select District" : "மாவட்டம் தேர்வு செய்க"}</option>
+                  {DATA.tamilNaduDistricts.map((d) => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                </select>
+              ) : (
                 <input
                   className="field mt-2"
-                  type={type}
-                  placeholder={placeholder}
-                  value={filters[key] || ""}
-                  onChange={(e) => setFilters({ ...filters, [key]: e.target.value })}
+                  type="text"
+                  placeholder={language === "en" ? "e.g. Coimbatore" : "உதாரணம்: கோயம்புத்தூர்"}
+                  value={filters.district || ""}
+                  onChange={(e) => setFilters({ ...filters, district: e.target.value })}
                 />
-              </label>
-            ))}
-            <div className="sm:col-span-2 lg:col-span-4 flex gap-3 pt-1">
-              <button id="search-submit" className="btn-primary" onClick={search}>
+              )}
+            </label>
+
+            {/* Job Category */}
+            <label>
+              <span className="label">{language === "en" ? "Job Category" : "தொழில் பிரிவு"}</span>
+              <select
+                className="field mt-2"
+                value={filters.profession || ""}
+                onChange={(e) => setFilters({ ...filters, profession: e.target.value })}
+              >
+                <option value="">{language === "en" ? "Select Job Category" : "தொழில் பிரிவு தேர்வு செய்க"}</option>
+                {jobCategoryList.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </label>
+
+            {/* Income */}
+            <label>
+              <span className="label">{language === "en" ? "Min Monthly Income (₹)" : "குறைந்தபட்ச மாத வருமானம் (₹)"}</span>
+              <input
+                className="field mt-2"
+                type="number"
+                placeholder="e.g. 30000"
+                value={filters.salaryMin || ""}
+                onChange={(e) => setFilters({ ...filters, salaryMin: e.target.value })}
+              />
+            </label>
+
+            {/* Filter buttons */}
+            <div className="sm:col-span-2 lg:col-span-3 flex gap-3 pt-3 border-t border-rose-100/50 mt-2">
+              <button id="search-submit" className="btn-primary flex items-center gap-1.5" onClick={() => search(1, false)}>
                 <Search size={17} /> {t("search")}
               </button>
               <button type="button" className="btn-secondary" onClick={reset}>
@@ -162,14 +295,37 @@ export default function SearchMatches() {
       {loading ? (
         <CardSkeleton count={6} />
       ) : results.length > 0 ? (
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {results.map((item) => (
-            <MatchCard
-              key={item.profile._id}
-              item={item}
-              onInterest={sendInterest}
-            />
-          ))}
+        <div className="grid gap-6">
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {results.map((item) => (
+              <MatchCard
+                key={item.profile._id}
+                item={item}
+                onInterest={sendInterest}
+              />
+            ))}
+          </div>
+
+          {/* Load More Pagination */}
+          {page < totalPages && (
+            <div className="flex justify-center mt-4">
+              <button
+                type="button"
+                className="btn-primary !px-8 flex items-center gap-2"
+                onClick={() => search(page + 1, true)}
+                disabled={loadingMore}
+              >
+                {loadingMore ? (
+                  <>
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    {language === "en" ? "Loading..." : "ஏற்றப்படுகிறது..."}
+                  </>
+                ) : (
+                  language === "en" ? "Load More" : "மேலும் காட்டுக"
+                )}
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-rose-100 bg-white py-20 text-center">

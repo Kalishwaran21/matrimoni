@@ -1,6 +1,7 @@
 import "dotenv/config";
 import cors from "cors";
 import express from "express";
+import compression from "compression";
 import helmet from "helmet";
 import http from "http";
 import jwt from "jsonwebtoken";
@@ -54,10 +55,12 @@ const io = new Server(server, {
     methods: ["GET", "POST"]
   }
 });
+global.io = io;
 
 const onlineUsers = new Map();
 
 app.use(helmet());
+app.use(compression());
 app.use(
   cors({
     origin: checkOrigin,

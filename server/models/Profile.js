@@ -26,16 +26,19 @@ const profileSchema = new mongoose.Schema(
     location: {
       country: String,
       state: String,
+      district: String,
       city: String,
       nativePlace: String,
       currentPlace: String
     },
     education: {
       degree: String,
+      department: String,
       college: String
     },
     career: {
       jobTitle: String,
+      customJobTitle: String,
       company: String,
       salary: Number
     },
@@ -45,7 +48,11 @@ const profileSchema = new mongoose.Schema(
       fatherOccupation: String,
       motherName: String,
       motherOccupation: String,
-      siblings: Number
+      siblings: Number,
+      brotherCount: Number,
+      sisterCount: Number,
+      marriedSiblings: Number,
+      unmarriedSiblings: Number
     },
     horoscope: {
       rasi: String,
@@ -60,9 +67,7 @@ const profileSchema = new mongoose.Schema(
     },
     assets: {
       house: { type: String, enum: ["Own House", "Rented House", "None / Others"], default: "None / Others" },
-      landValue: Number,
-      landUnit: { type: String, enum: ["Acres", "Cents"] },
-      assetValueLakhs: Number
+      description: String
     },
     about: String,
     preferences: {
@@ -97,7 +102,14 @@ profileSchema.index({
   "location.city": 1,
   "education.degree": 1,
   "career.jobTitle": 1,
-  "career.salary": 1
 });
+
+profileSchema.index({ "basic.gender": 1 });
+profileSchema.index({ isApproved: 1 });
+profileSchema.index({ "basic.age": 1 });
+profileSchema.index({ "location.city": 1 });
+profileSchema.index({ "location.district": 1 });
+profileSchema.index({ "location.state": 1 });
+profileSchema.index({ "religion.religion": 1 });
 
 export default mongoose.model("Profile", profileSchema);

@@ -1,6 +1,8 @@
 // server/controllers/importController.js
 import User from "../models/User.js";
 import Profile from "../models/Profile.js";
+import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -251,11 +253,14 @@ export const previewImport = async (req, res) => {
       };
     });
 
+    const allMapped = validProfiles.map(raw => mapProfile(raw));
+
     res.json({
       total: rawProfiles.length,
       valid: validProfiles.length,
       invalid: invalidProfiles.length,
       sampleMapped: sample,
+      allMapped: allMapped,
       invalidReasons: invalidProfiles.slice(0, 5).map(p => ({
         member_id: p.member_id,
         name: p.Name || "(no name)",
@@ -280,19 +285,47 @@ export const importProfiles = async (req, res) => {
     let imported = 0, skipped = 0, errors = 0;
     const errorDetails = [];
 
-    for (const raw of rawProfiles) {
-      if (!isValid(raw)) { skipped++; continue; }
+    const validProfiles = rawProfiles.filter(isValid);
+    skipped += (rawProfiles.length - validProfiles.length);
 
+    if (validProfiles.length > 0) {
       try {
-        const { userDoc, profileDoc } = mapProfile(raw);
+        // Map all valid profiles to extract emails
+        const mappedData = validProfiles.map(raw => mapProfile(raw));
+        const emails = mappedData.map(data => data.userDoc.email);
+        
+        // Find existing users in one query
+        const existingUsers = await User.find({ email: { $in: emails } }).select("email").lean();
+        const existingEmails = new Set(existingUsers.map(u => u.email));
 
-        const existingUser = await User.findOne({ email: userDoc.email });
-        if (existingUser) { skipped++; continue; }
+        const usersToInsert = [];
+        const profilesToLink = [];
 
-        const user = await User.create(userDoc);
-        profileDoc.user = user._id;
-        await Profile.create(profileDoc);
-        imported++;
+        const salt = await bcrypt.genSalt(12);
+        const hashedPassword = await bcrypt.hash("Imported@2026", salt);
+
+        for (const data of mappedData) {
+          if (existingEmails.has(data.userDoc.email)) {
+            skipped++;
+            continue;
+          }
+
+          const userId = new mongoose.Types.ObjectId();
+          data.userDoc._id = userId;
+          data.userDoc.password = hashedPassword;
+          
+          data.profileDoc.user = userId;
+          data.profileDoc.profileId = data.memberId;
+          
+          usersToInsert.push(data.userDoc);
+          profilesToLink.push(data.profileDoc);
+        }
+
+        if (usersToInsert.length > 0) {
+          await User.insertMany(usersToInsert, { ordered: false });
+          await Profile.insertMany(profilesToLink, { ordered: false });
+          imported = usersToInsert.length;
+        }
       } catch (err) {
         errors++;
         errorDetails.push(err.message);

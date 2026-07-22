@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { ArrowRight, Heart, HeartHandshake, Menu, Search, ShieldCheck, Sparkles, Star, UsersRound, X, LogOut, UserRound, Bell } from "lucide-react";
+import { ArrowRight, Heart, HeartHandshake, Menu, Search, ShieldCheck, Sparkles, Star, UsersRound, X, LogOut, UserRound, Bell, Lock } from "lucide-react";
 import { Link, NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
+import { useSocket } from "../context/SocketContext";
 import { api } from "../services/api";
 import { toast } from "./Toast";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const { t, language, setLanguage } = useLanguage();
+  const { socket } = useSocket();
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [interestPopup, setInterestPopup] = useState(null);
 
   const toggleLanguage = () => {
     setLanguage(language === "en" ? "ta" : "en");
@@ -23,6 +26,25 @@ export default function Navbar() {
       setNotifications(data.notifications || []);
     }).catch((err) => console.log(err));
   }, [user]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on("notification:new", (newNotif) => {
+      setNotifications((prev) => [newNotif, ...prev]);
+
+      // If it is an interest received/accepted event, trigger popup
+      if (newNotif.type === "New Interest" || newNotif.type === "Interest Accepted") {
+        setInterestPopup(newNotif);
+      } else {
+        toast.success(newNotif.message);
+      }
+    });
+
+    return () => {
+      socket.off("notification:new");
+    };
+  }, [socket]);
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
@@ -60,7 +82,17 @@ export default function Navbar() {
     : publicLinks;
 
   return (
-    <header className="sticky top-0 z-40 border-b border-rose-100/60 bg-white/90 backdrop-blur-md shadow-sm">
+    <header className="sticky top-0 z-40 border-b border-rose-100/60 bg-white/95 backdrop-blur-md shadow-sm">
+      {/* Support Top Bar */}
+      <div className="bg-gradient-to-r from-maroon-700 to-rose-600 py-1.5 px-4 text-center text-xs font-semibold text-white flex items-center justify-center gap-2">
+        <span>📞</span>
+        <span>
+          {language === "en" ? "Customer Support / Queries:" : "வாடிக்கையாளர் சேவை / உதவிக்கு:"}
+        </span>
+        <a href="tel:+918000000000" className="underline hover:text-rose-100 transition-colors font-bold tracking-wider">
+          +91 80000 00000
+        </a>
+      </div>
       <nav className="container-pad flex min-h-16 items-center justify-between gap-4">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2.5 text-lg font-black text-maroon-700">
@@ -256,6 +288,40 @@ export default function Navbar() {
                 </Link>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Real-time Interest Received Popup */}
+      {interestPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-fade-in">
+          <div className="relative w-full max-w-sm rounded-3xl border border-rose-100 bg-white p-6 shadow-2xl animate-scale-up text-center">
+            <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-gradient-to-br from-rose-500 to-maroon-600 text-white shadow-lg animate-pulse-ring mb-4">
+              <Heart size={30} fill="currentColor" />
+            </span>
+            <h3 className="text-lg font-black text-slate-950">
+              {interestPopup.type === "New Interest"
+                ? (language === "ta" ? "விருப்பம் பெறப்பட்டது! 💖" : "New Interest Received! 💖")
+                : (language === "ta" ? "விருப்பம் ஏற்றுக்கொள்ளப்பட்டது! 💕" : "Interest Accepted! 💕")}
+            </h3>
+            <p className="mt-2 text-sm text-slate-600">
+              {interestPopup.message}
+            </p>
+            <div className="mt-6 flex flex-col gap-2">
+              <Link
+                to="/interests"
+                onClick={() => setInterestPopup(null)}
+                className="btn-primary w-full py-2.5 text-xs font-bold"
+              >
+                {language === "ta" ? "விருப்பங்கள் பக்கத்தை காண்க" : "View Interests Page"}
+              </Link>
+              <button
+                onClick={() => setInterestPopup(null)}
+                className="btn-secondary w-full py-2 text-xs font-semibold"
+              >
+                {language === "ta" ? "மூடு" : "Close"}
+              </button>
+            </div>
           </div>
         </div>
       )}

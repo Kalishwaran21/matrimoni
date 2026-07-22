@@ -12,7 +12,7 @@ import { useLanguage } from "../context/LanguageContext";
 const TABS = ["basic", "religion", "location", "education", "career", "family", "contact", "horoscope", "assets", "about", "photos", "preferences"];
 const initial = Object.fromEntries(TABS.map((s) => [s, s === "about" ? "" : {}]));
 
-export default function ManagerOutsideData({ editMode = false }) {
+export default function ManagerOutsideData({ editMode = false, prefillData = null, onSuccess = null }) {
   const navigate = useNavigate();
   const { id } = useParams();
   const [loading, setLoading] = useState(editMode);
@@ -32,6 +32,24 @@ export default function ManagerOutsideData({ editMode = false }) {
   const [dobMonth, setDobMonth] = useState("");
   const [dobYear, setDobYear] = useState("");
   const cardRef = useRef(null);
+
+  useEffect(() => {
+    if (prefillData) {
+      setForm(prefillData.profileDoc || initial);
+      setCredentials({
+        fullName: prefillData.userDoc?.fullName || "",
+        email: prefillData.userDoc?.email || "",
+        mobile: prefillData.profileDoc?.contact?.phone || "",
+        password: prefillData.userDoc?.password || "password123",
+        gender: prefillData.userDoc?.gender || ""
+      });
+      if (prefillData.profileDoc?.basic?.dob) {
+        const [y, m, d] = prefillData.profileDoc.basic.dob.split("-");
+        setDobYear(y || ""); setDobMonth(m || ""); setDobDay(d || "");
+      }
+      setExistingPhoto(prefillData.profileDoc?.photo || null);
+    }
+  }, [prefillData]);
 
   useEffect(() => {
     }, []);
@@ -119,6 +137,9 @@ export default function ManagerOutsideData({ editMode = false }) {
       setPreview(null);
       toast.success(language === "en" ? "User profile created successfully!" : "பயனர் சுயவிவரம் வெற்றிகரமாக உருவாக்கப்பட்டது!");
       window.scrollTo({ top: 0, behavior: "smooth" });
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (err) {
       toast.error(err.response?.data?.message || (language === "en" ? "Failed to create profile." : "சுயவிவரத்தை உருவாக்க முடியவில்லை."));
     } finally {

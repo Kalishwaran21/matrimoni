@@ -76,8 +76,15 @@ export default function Profile() {
         // Reset dynamic fields
         if (field === "religion" && section === "religion") next.religion.caste = "";
         if (field === "religion" && section === "preferences") next.preferences.caste = "";
-        if (field === "rasi") next.horoscope.nakshatra = "";
-        if (field === "country") next.location.state = "";
+        if (field === "rasi") {
+          next.horoscope.nakshatra = "";
+          // Also reset lagnam if desired (optional)
+        }
+        if (field === "country") {
+          next.location.state = "";
+          next.location.district = "";
+        }
+        if (field === "state") next.location.district = "";
       }
       return next;
     });
@@ -95,7 +102,26 @@ export default function Profile() {
     if (d && m && y) {
       const paddedMonth = String(m).padStart(2, "0");
       const paddedDay = String(d).padStart(2, "0");
-      update("basic", "dob", `${y}-${paddedMonth}-${paddedDay}`);
+      const dobStr = `${y}-${paddedMonth}-${paddedDay}`;
+      
+      // Calculate age dynamically
+      const today = new Date();
+      const birthDate = new Date(dobStr);
+      let calculatedAge = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        calculatedAge--;
+      }
+
+      setForm((cur) => {
+        const next = { ...cur };
+        next.basic = {
+          ...next.basic,
+          dob: dobStr,
+          age: calculatedAge
+        };
+        return next;
+      });
     } else {
       update("basic", "dob", "");
     }
@@ -187,6 +213,14 @@ export default function Profile() {
 
   const selectedCountry = form.location?.country || "";
   const availableStates = DATA.statesByCountry[selectedCountry] || ["Other"];
+
+  // Career cascading
+  const selectedJobCategory = form.career?.profession || "";
+  const availableJobTitles = DATA.jobsByCategory[selectedJobCategory] || [];
+
+  // Degree needs department field?
+  const degreeNeedsDept = ["B.E","B.Tech","B.Sc","B.Com","BBA","BCA","BA","B.Arch","M.E","M.Tech","M.Sc","M.Com","MBA","MCA","MA","M.Phil","PhD","Doctorate","Diploma","ITI","MBBS","BDS","B.Pharm","B.Nursing","M.Pharm","MD","MS","LLB"];
+  const showDeptField = degreeNeedsDept.includes(form.education?.degree || "");
 
   const fmt = (n) => (n ? parseInt(n).toLocaleString("en-IN") : "—");
   const cardPhoto = preview || existingPhoto?.url || "";
@@ -301,17 +335,15 @@ export default function Profile() {
             />
           </label>
           <label className="flex flex-col gap-1.5">
-            <span className="label">{t("fieldAge")} *</span>
+            <span className="label">{t("fieldAge")} (Calculated from DOB) *</span>
             <input
-              className="field mt-1"
+              className="field mt-1 bg-slate-50 border-slate-200 cursor-not-allowed"
               type="number"
               required
-              min="18"
-              max="80"
-              disabled={!isEditMode}
+              readOnly
+              disabled
               value={form.basic?.age || ""}
-              onChange={(e) => update("basic", "age", e.target.value)}
-              placeholder={language === "en" ? "E.g., 25" : "உதாரணம்: 25"}
+              placeholder={language === "en" ? "Calculated from DOB" : "பிறந்த தேதியிலிருந்து கணக்கிடப்படும்"}
             />
           </label>
           <div className="flex flex-col gap-1.5">
@@ -402,19 +434,6 @@ export default function Profile() {
               value={form.basic?.height || ""}
               onChange={(e) => update("basic", "height", e.target.value)}
               placeholder={language === "en" ? "E.g., 165" : "உதாரணம்: 165"}
-            />
-          </label>
-          <label className="flex flex-col gap-1.5">
-            <span className="label">{t("fieldWeight")}</span>
-            <input
-              className="field mt-1"
-              type="number"
-              min="30"
-              max="200"
-              disabled={!isEditMode}
-              value={form.basic?.weight || ""}
-              onChange={(e) => update("basic", "weight", e.target.value)}
-              placeholder={language === "en" ? "E.g., 60" : "உதாரணம்: 60"}
             />
           </label>
           <label className="flex flex-col gap-1.5">
@@ -551,14 +570,40 @@ export default function Profile() {
             </select>
           </label>
           <label className="flex flex-col gap-1.5">
-            <span className="label">{t("fieldCity")} *</span>
+            <span className="label">{language === "en" ? "District" : "மாவட்டம்"} *</span>
+            {form.location?.state === "Tamil Nadu" ? (
+              <select
+                className="field mt-1"
+                required
+                disabled={!isEditMode}
+                value={form.location?.district || ""}
+                onChange={(e) => update("location", "district", e.target.value)}
+              >
+                <option value="">{language === "en" ? "Select District" : "மாவட்டம் தேர்வு செய்க"}</option>
+                {DATA.tamilNaduDistricts.map((d) => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
+              </select>
+            ) : (
+              <input
+                className="field mt-1"
+                required
+                disabled={!isEditMode}
+                value={form.location?.district || ""}
+                onChange={(e) => update("location", "district", e.target.value)}
+                placeholder={language === "en" ? "E.g., Coimbatore" : "உதாரணம்: கோயம்புத்தூர்"}
+              />
+            )}
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="label">{language === "en" ? "Village / City" : "கிராமம் / நகர்"} *</span>
             <input
               className="field mt-1"
               required
               disabled={!isEditMode}
               value={form.location?.city || ""}
               onChange={(e) => update("location", "city", e.target.value)}
-              placeholder={language === "en" ? "E.g., Chennai" : "உதாரணம்: சென்னை"}
+              placeholder={language === "en" ? "Type here..." : "இங்கே தட்டச்சு செய்யவும்..."}
             />
           </label>
         </div>
@@ -569,9 +614,10 @@ export default function Profile() {
         <h2 className="mb-5 text-xl font-black text-maroon-800 flex items-center gap-2">
           <span>🎓</span> {t("secEducation")}
         </h2>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Education Level */}
           <label className="flex flex-col gap-1.5">
-            <span className="label">{t("fieldEducation")} *</span>
+            <span className="label">{language === "en" ? "Education Level" : "கல்வி நிலை"} *</span>
             <select
               className="field mt-1"
               required
@@ -579,20 +625,37 @@ export default function Profile() {
               value={form.education?.degree || ""}
               onChange={(e) => update("education", "degree", e.target.value)}
             >
-              <option value="">Select Degree</option>
+              <option value="">{language === "en" ? "Select Education Level" : "கல்வி நிலை தேர்வு செய்க"}</option>
               {DATA.education.map((e) => (
-                <option key={e} value={e}>{t(e)}</option>
+                <option key={e} value={e}>{e}</option>
               ))}
             </select>
           </label>
+
+          {/* Department / Specialization — only show when degree chosen */}
+          {showDeptField && (
+            <label className="flex flex-col gap-1.5">
+              <span className="label">{language === "en" ? "Department / Specialization" : "துறை / சிறப்பு பிரிவு"} *</span>
+              <input
+                className="field mt-1"
+                required
+                disabled={!isEditMode}
+                value={form.education?.department || ""}
+                onChange={(e) => update("education", "department", e.target.value)}
+                placeholder={language === "en" ? "E.g., Computer Science, Mechanical, Commerce..." : "உதாரணம்: கணினி அறிவியல், இயந்திரவியல்..."}
+              />
+            </label>
+          )}
+
+          {/* College / Institution Name */}
           <label className="flex flex-col gap-1.5">
-            <span className="label">{t("fieldCollege")}</span>
+            <span className="label">{language === "en" ? "College / Institution" : "கல்லூரி / நிறுவனம்"}</span>
             <input
               className="field mt-1"
               disabled={!isEditMode}
               value={form.education?.college || ""}
               onChange={(e) => update("education", "college", e.target.value)}
-              placeholder={language === "en" ? "E.g., Anna University" : "உதாரணம்: அண்ணா பல்கலைக்கழகம்"}
+              placeholder={language === "en" ? "E.g., Anna University, PSG College..." : "உதாரணம்: அண்ணா பல்கலைக்கழகம்"}
             />
           </label>
         </div>
@@ -603,52 +666,85 @@ export default function Profile() {
         <h2 className="mb-5 text-xl font-black text-maroon-800 flex items-center gap-2">
           <span>💼</span> {t("secCareer")}
         </h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Step 1: Job Category */}
           <label className="flex flex-col gap-1.5">
-            <span className="label">{t("fieldProfession")} *</span>
+            <span className="label">{language === "en" ? "Job Category" : "தொழில் பிரிவு"} *</span>
             <select
               className="field mt-1"
               required
               disabled={!isEditMode}
               value={form.career?.profession || ""}
-              onChange={(e) => update("career", "profession", e.target.value)}
+              onChange={(e) => {
+                update("career", "profession", e.target.value);
+                update("career", "jobTitle", "");
+              }}
             >
-              <option value="">Select Profession</option>
-              {DATA.professions.map((p) => (
-                <option key={p} value={p}>{t(p)}</option>
+              <option value="">{language === "en" ? "Select Category" : "பிரிவு தேர்வு செய்க"}</option>
+              {DATA.jobCategories.map((c) => (
+                <option key={c} value={c}>{c}</option>
               ))}
             </select>
           </label>
+
+          {/* Step 2: Specific Job Title (cascades from category) */}
+          {selectedJobCategory && (
+            <label className="flex flex-col gap-1.5">
+              <span className="label">{language === "en" ? "Job Title / Role" : "குறிப்பிட்ட பணி"} *</span>
+              <select
+                className="field mt-1"
+                required
+                disabled={!isEditMode}
+                value={form.career?.jobTitle || ""}
+                onChange={(e) => update("career", "jobTitle", e.target.value)}
+              >
+                <option value="">{language === "en" ? "Select Job Title" : "பணி தேர்வு செய்க"}</option>
+                {availableJobTitles.map((j) => (
+                  <option key={j} value={j}>{j}</option>
+                ))}
+                <option value="__custom__">{language === "en" ? "Type my own..." : "நானே தட்டச்சு செய்கிறேன்..."}</option>
+              </select>
+            </label>
+          )}
+
+          {/* If user picks 'Type my own' */}
+          {form.career?.jobTitle === "__custom__" && (
+            <label className="flex flex-col gap-1.5">
+              <span className="label">{language === "en" ? "Enter Job Title" : "பணி பெயர் உள்ளிடவும்"} *</span>
+              <input
+                className="field mt-1"
+                required
+                disabled={!isEditMode}
+                value={form.career?.customJobTitle || ""}
+                onChange={(e) => update("career", "customJobTitle", e.target.value)}
+                placeholder={language === "en" ? "Type your job title..." : "உங்கள் பணி பெயர்..."}
+              />
+            </label>
+          )}
+
+          {/* Company Name */}
           <label className="flex flex-col gap-1.5">
-            <span className="label">{t("fieldJobTitle")} *</span>
-            <input
-              className="field mt-1"
-              required
-              disabled={!isEditMode}
-              value={form.career?.jobTitle || ""}
-              onChange={(e) => update("career", "jobTitle", e.target.value)}
-              placeholder={language === "en" ? "E.g., Senior iOS Developer" : "உதாரணம்: சீனியர் ஐஓஎஸ் டெவலப்பர்"}
-            />
-          </label>
-          <label className="flex flex-col gap-1.5">
-            <span className="label">{t("fieldCompany")}</span>
+            <span className="label">{language === "en" ? "Company / Organisation" : "நிறுவனம் / அமைப்பு"}</span>
             <input
               className="field mt-1"
               disabled={!isEditMode}
               value={form.career?.company || ""}
               onChange={(e) => update("career", "company", e.target.value)}
-              placeholder={language === "en" ? "E.g., Infosys Ltd" : "உதாரணம்: இன்போசிஸ் நிறுவனம்"}
+              placeholder={language === "en" ? "E.g., TCS, Infosys, Govt Hospital..." : "உதாரணம்: டி.சி.எஸ், இன்போசிஸ்..."}
             />
           </label>
+
+          {/* Monthly Salary */}
           <label className="flex flex-col gap-1.5">
-            <span className="label">{t("fieldSalary")}</span>
+            <span className="label">{language === "en" ? "Monthly Salary (₹)" : "மாத சம்பளம் (₹)"}</span>
             <input
               className="field mt-1"
               type="number"
+              min="0"
               disabled={!isEditMode}
               value={form.career?.salary || ""}
               onChange={(e) => update("career", "salary", e.target.value)}
-              placeholder={language === "en" ? "E.g., 50000" : "உதாரணம்: 50000"}
+              placeholder={language === "en" ? "E.g., 35000" : "உதாரணம்: 35000"}
             />
           </label>
         </div>
@@ -669,7 +765,7 @@ export default function Profile() {
               value={form.family?.familyType || ""}
               onChange={(e) => update("family", "familyType", e.target.value)}
             >
-              <option value="">Select Family Type</option>
+              <option value="">{language === "en" ? "Select Family Type" : "குடும்ப வகை தேர்வு"}</option>
               <option value="Joint">{t("Joint")}</option>
               <option value="Nuclear">{t("Nuclear")}</option>
               <option value="Others">{t("Others")}</option>
@@ -677,9 +773,7 @@ export default function Profile() {
           </label>
           <label className="flex flex-col gap-1.5">
             <span className="label">{t("fieldFatherName")}</span>
-            <input
-              className="field mt-1"
-              disabled={!isEditMode}
+            <input className="field mt-1" disabled={!isEditMode}
               value={form.family?.fatherName || ""}
               onChange={(e) => update("family", "fatherName", e.target.value)}
               placeholder={language === "en" ? "Father's Name" : "தந்தையின் பெயர்"}
@@ -687,9 +781,7 @@ export default function Profile() {
           </label>
           <label className="flex flex-col gap-1.5">
             <span className="label">{t("fieldFatherJob")}</span>
-            <input
-              className="field mt-1"
-              disabled={!isEditMode}
+            <input className="field mt-1" disabled={!isEditMode}
               value={form.family?.fatherOccupation || ""}
               onChange={(e) => update("family", "fatherOccupation", e.target.value)}
               placeholder={language === "en" ? "E.g., Retired Govt Officer" : "உதாரணம்: ஓய்வு பெற்ற அரசு அதிகாரி"}
@@ -697,9 +789,7 @@ export default function Profile() {
           </label>
           <label className="flex flex-col gap-1.5">
             <span className="label">{t("fieldMotherName")}</span>
-            <input
-              className="field mt-1"
-              disabled={!isEditMode}
+            <input className="field mt-1" disabled={!isEditMode}
               value={form.family?.motherName || ""}
               onChange={(e) => update("family", "motherName", e.target.value)}
               placeholder={language === "en" ? "Mother's Name" : "தாயின் பெயர்"}
@@ -707,28 +797,81 @@ export default function Profile() {
           </label>
           <label className="flex flex-col gap-1.5">
             <span className="label">{t("fieldMotherJob")}</span>
-            <input
-              className="field mt-1"
-              disabled={!isEditMode}
+            <input className="field mt-1" disabled={!isEditMode}
               value={form.family?.motherOccupation || ""}
               onChange={(e) => update("family", "motherOccupation", e.target.value)}
               placeholder={language === "en" ? "E.g., Homemaker" : "உதாரணம்: இல்லத்தரசி"}
             />
           </label>
+
+          {/* No. of Siblings */}
           <label className="flex flex-col gap-1.5">
-            <span className="label">{t("fieldSiblings")}</span>
+            <span className="label">{language === "en" ? "No. of Siblings" : "உடன்பிறந்தோர் எண்ணிக்கை"}</span>
             <input
               className="field mt-1"
-              type="number"
-              min="0"
-              max="15"
+              type="number" min="0" max="15"
               disabled={!isEditMode}
               value={form.family?.siblings || ""}
               onChange={(e) => update("family", "siblings", e.target.value)}
-              placeholder={language === "en" ? "E.g., 2" : "உதாரணம்: 2"}
+              placeholder="0"
             />
           </label>
         </div>
+
+        {/* Sibling breakdown — appears only when siblings > 0 */}
+        {Number(form.family?.siblings) > 0 && (
+          <div className="mt-5 rounded-2xl border border-rose-100 bg-rose-50/40 p-4">
+            <p className="text-sm font-black text-maroon-800 mb-3">
+              {language === "en" ? `Sibling Details (Total: ${form.family.siblings})` : `உடன்பிறந்தோர் விவரம் (மொத்தம்: ${form.family.siblings})`}
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <label className="flex flex-col gap-1">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">{language === "en" ? "👦 Brothers" : "👦 அண்ணன் / தம்பி"}</span>
+                <input
+                  className="field"
+                  type="number" min="0" max={form.family.siblings}
+                  disabled={!isEditMode}
+                  value={form.family?.brotherCount || ""}
+                  onChange={(e) => update("family", "brotherCount", e.target.value)}
+                  placeholder="0"
+                />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">{language === "en" ? "👧 Sisters" : "👧 அக்கா / தங்கை"}</span>
+                <input
+                  className="field"
+                  type="number" min="0" max={form.family.siblings}
+                  disabled={!isEditMode}
+                  value={form.family?.sisterCount || ""}
+                  onChange={(e) => update("family", "sisterCount", e.target.value)}
+                  placeholder="0"
+                />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">{language === "en" ? "💍 Married" : "💍 திருமணமானவர்"}</span>
+                <input
+                  className="field"
+                  type="number" min="0" max={form.family.siblings}
+                  disabled={!isEditMode}
+                  value={form.family?.marriedSiblings || ""}
+                  onChange={(e) => update("family", "marriedSiblings", e.target.value)}
+                  placeholder="0"
+                />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">{language === "en" ? "💛 Unmarried" : "💛 திருமணமாகாதவர்"}</span>
+                <input
+                  className="field"
+                  type="number" min="0" max={form.family.siblings}
+                  disabled={!isEditMode}
+                  value={form.family?.unmarriedSiblings || ""}
+                  onChange={(e) => update("family", "unmarriedSiblings", e.target.value)}
+                  placeholder="0"
+                />
+              </label>
+            </div>
+          </div>
+        )}
       </section>
 
 
@@ -781,6 +924,7 @@ export default function Profile() {
           <span>✨</span> {t("secHoroscope")}
         </h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {/* 1. Rasi */}
           <label className="flex flex-col gap-1.5">
             <span className="label">{t("fieldRasi")} *</span>
             <select
@@ -794,21 +938,9 @@ export default function Profile() {
               {Object.keys(DATA.rasiData).map((r) => <option key={r} value={r}>{t(r)}</option>)}
             </select>
           </label>
+          {/* 2. Natchathiram (depends on Rasi) */}
           <label className="flex flex-col gap-1.5">
-            <span className="label">Lagnam (லக்னம்) *</span>
-            <select
-              className="field mt-1"
-              required
-              disabled={!isEditMode}
-              value={form.horoscope?.lagnam || ""}
-              onChange={(e) => update("horoscope", "lagnam", e.target.value)}
-            >
-              <option value="">Select Lagnam</option>
-              {Object.keys(DATA.rasiData).map((r) => <option key={r} value={r}>{t(r)}</option>)}
-            </select>
-          </label>
-          <label className="flex flex-col gap-1.5">
-            <span className="label">{t("fieldStar")} *</span>
+            <span className="label">{language === "en" ? "Natchathiram" : "நட்சத்திரம்"} *</span>
             <select
               className="field mt-1"
               required
@@ -816,10 +948,25 @@ export default function Profile() {
               value={form.horoscope?.nakshatra || ""}
               onChange={(e) => update("horoscope", "nakshatra", e.target.value)}
             >
-              <option value="">Select Natchathiram</option>
+              <option value="">{language === "en" ? "Select Natchathiram" : "நட்சத்திரம் தேர்வு செய்க"}</option>
               {availableStars.map((s) => <option key={s} value={s}>{t(s)}</option>)}
             </select>
           </label>
+          {/* 3. Lagnam */}
+          <label className="flex flex-col gap-1.5">
+            <span className="label">{language === "en" ? "Lagnam" : "லக்னம்"} *</span>
+            <select
+              className="field mt-1"
+              required
+              disabled={!isEditMode}
+              value={form.horoscope?.lagnam || ""}
+              onChange={(e) => update("horoscope", "lagnam", e.target.value)}
+            >
+              <option value="">{language === "en" ? "Select Lagnam" : "லக்னம் தேர்வு செய்க"}</option>
+              {Object.keys(DATA.rasiData).map((r) => <option key={r} value={r}>{t(r)}</option>)}
+            </select>
+          </label>
+          {/* 4. Dosham */}
           <label className="flex flex-col gap-1.5">
             <span className="label">{t("fieldDosham")} *</span>
             <select
@@ -833,6 +980,7 @@ export default function Profile() {
               {DATA.doshamTypes.map((d) => <option key={d} value={d}>{t(d)}</option>)}
             </select>
           </label>
+          {/* 5. Gothram */}
           <label className="flex flex-col gap-1.5">
             <span className="label">{t("fieldGothram")}</span>
             <input
@@ -847,67 +995,41 @@ export default function Profile() {
         </div>
       </section>
 
+
       {/* ── SECTION: Assets Details ── */}
       <section className="panel">
         <h2 className="mb-5 text-xl font-black text-maroon-800 flex items-center gap-2">
           <span>🏡</span> {t("secAssets")}
         </h2>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2">
+          {/* House Type */}
           <label className="flex flex-col gap-1.5">
-            <span className="label">{t("fieldHouse")}</span>
+            <span className="label">{language === "en" ? "House / Residence" : "வீடு / குடியிருப்பு"}</span>
             <select
               className="field mt-1"
               disabled={!isEditMode}
               value={form.assets?.house || ""}
               onChange={(e) => update("assets", "house", e.target.value)}
             >
-              <option value="">Select House Type</option>
-              <option value="Own House">{t("Own House")}</option>
-              <option value="Rented House">{t("Rented House")}</option>
-              <option value="None / Others">{t("None / Others")}</option>
+              <option value="">{language === "en" ? "Select House Type" : "வீடு வகை தேர்வு"}</option>
+              <option value="Own House">{language === "en" ? "Own House" : "சொந்த வீடு"}</option>
+              <option value="Rented House">{language === "en" ? "Rented House" : "வாடகை வீடு"}</option>
+              <option value="None / Others">{language === "en" ? "None / Others" : "இல்லை / பிற"}</option>
             </select>
           </label>
-          <label className="flex flex-col gap-1.5">
-            <span className="label">{language === "en" ? "Land Details" : "நில விவரங்கள்"}</span>
-            <div className="flex gap-2">
-              <input
-                className="field mt-1 flex-1"
-                type="number"
-                min="0"
-                step="0.01"
-                disabled={!isEditMode}
-                value={form.assets?.landValue || ""}
-                onChange={(e) => update("assets", "landValue", e.target.value)}
-                placeholder="E.g., 2"
-              />
-              <select
-                className="field mt-1 flex-1"
-                disabled={!isEditMode}
-                value={form.assets?.landUnit || ""}
-                onChange={(e) => update("assets", "landUnit", e.target.value)}
-              >
-                <option value="">Select Unit</option>
-                <option value="Acres">{language === "en" ? "Acres" : "ஏக்கர்"}</option>
-                <option value="Cents">{language === "en" ? "Cents" : "சென்ட்"}</option>
-              </select>
-            </div>
-          </label>
-          <label className="flex flex-col gap-1.5">
-            <span className="label">{language === "en" ? "Total Asset Value (in Lakhs)" : "மொத்த சொத்து மதிப்பு (லட்சத்தில்)"}</span>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">₹</span>
-              <input
-                className="field mt-1 pl-8 pr-16 w-full"
-                type="number"
-                min="0"
-                step="0.1"
-                disabled={!isEditMode}
-                value={form.assets?.assetValueLakhs || ""}
-                onChange={(e) => update("assets", "assetValueLakhs", e.target.value)}
-                placeholder="50"
-              />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">Lakhs</span>
-            </div>
+
+          {/* Free-text asset description */}
+          <label className="flex flex-col gap-1.5 sm:col-span-2">
+            <span className="label">{language === "en" ? "Asset Details (Describe your property, land, vehicles, etc.)" : "சொத்து விவரங்கள் (நிலம், வாகனம், சொத்து குறிப்புகள்)"}</span>
+            <textarea
+              className="field mt-1 resize-y min-h-[100px]"
+              disabled={!isEditMode}
+              value={form.assets?.description || ""}
+              onChange={(e) => update("assets", "description", e.target.value)}
+              placeholder={language === "en"
+                ? "Describe your assets freely. E.g.: 2 acres agricultural land in Erode, 1 own house in Chennai, 1 car..."
+                : "உதாரணம்: ஈரோட்டில் 2 ஏக்கர் நிலம், சென்னையில் சொந்த வீடு, 1 கார்..."}
+            />
           </label>
         </div>
       </section>
