@@ -80,10 +80,6 @@ export default function Profile() {
           next.horoscope.nakshatra = "";
           // Also reset lagnam if desired (optional)
         }
-        if (field === "country") {
-          next.location.state = "";
-          next.location.district = "";
-        }
         if (field === "state") next.location.district = "";
       }
       return next;
@@ -143,8 +139,15 @@ export default function Profile() {
     e.preventDefault();
     setSaving(true);
 
+    const formToSend = {
+      ...form,
+      location: {
+        ...form.location,
+        country: "India"
+      }
+    };
     const formData = new FormData();
-    formData.append("updates", JSON.stringify(form));
+    formData.append("updates", JSON.stringify(formToSend));
     if (photoFile) {
       formData.append("photo", photoFile);
     }
@@ -211,8 +214,9 @@ export default function Profile() {
   const selectedRasi = form.horoscope?.rasi || "";
   const availableStars = DATA.rasiData[selectedRasi] || [];
 
-  const selectedCountry = form.location?.country || "";
-  const availableStates = DATA.statesByCountry[selectedCountry] || ["Other"];
+  const selectedState = form.location?.state || "";
+  const availableStates = DATA.statesByCountry["India"] || [];
+  const availableDistricts = DATA.districtsByState[selectedState] || [];
 
   // Career cascading
   const selectedJobCategory = form.career?.profession || "";
@@ -540,21 +544,6 @@ export default function Profile() {
         </h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <label className="flex flex-col gap-1.5">
-            <span className="label">{t("fieldCountry")} *</span>
-            <select
-              className="field mt-1"
-              required
-              disabled={!isEditMode}
-              value={form.location?.country || ""}
-              onChange={(e) => update("location", "country", e.target.value)}
-            >
-              <option value="">Select Country</option>
-              {DATA.locations.map((c) => (
-                <option key={c} value={c}>{t(c)}</option>
-              ))}
-            </select>
-          </label>
-          <label className="flex flex-col gap-1.5">
             <span className="label">{t("fieldState")} *</span>
             <select
               className="field mt-1"
@@ -571,7 +560,7 @@ export default function Profile() {
           </label>
           <label className="flex flex-col gap-1.5">
             <span className="label">{language === "en" ? "District" : "மாவட்டம்"} *</span>
-            {form.location?.state === "Tamil Nadu" ? (
+            {availableDistricts.length > 0 ? (
               <select
                 className="field mt-1"
                 required
@@ -580,8 +569,8 @@ export default function Profile() {
                 onChange={(e) => update("location", "district", e.target.value)}
               >
                 <option value="">{language === "en" ? "Select District" : "மாவட்டம் தேர்வு செய்க"}</option>
-                {DATA.tamilNaduDistricts.map((d) => (
-                  <option key={d} value={d}>{d}</option>
+                {availableDistricts.map((d) => (
+                  <option key={d} value={d}>{t(d)}</option>
                 ))}
               </select>
             ) : (

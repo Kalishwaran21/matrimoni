@@ -49,7 +49,7 @@ export default function AdminCreateProfile() {
         if (field === "religion" && section === "religion") next.religion.caste = "";
         if (field === "religion" && section === "preferences") next.preferences.caste = "";
         if (field === "rasi") next.horoscope.nakshatra = "";
-        if (field === "country") next.location.state = "";
+        if (field === "state") next.location.district = "";
       }
       return next;
     });
@@ -106,13 +106,20 @@ export default function AdminCreateProfile() {
     e.preventDefault();
     setSaving(true);
 
+    const formToSend = {
+      ...form,
+      location: {
+        ...form.location,
+        country: "India"
+      }
+    };
     const formData = new FormData();
     formData.append("email", email);
     formData.append("password", password);
     formData.append("fullName", fullName);
     formData.append("mobile", mobile);
     formData.append("gender", gender);
-    formData.append("profileData", JSON.stringify(form));
+    formData.append("profileData", JSON.stringify(formToSend));
     if (photoFile) {
       formData.append("photo", photoFile);
     }
@@ -161,8 +168,9 @@ export default function AdminCreateProfile() {
   const selectedRasi = form.horoscope?.rasi || "";
   const availableStars = DATA.rasiData[selectedRasi] || [];
 
-  const selectedCountry = form.location?.country || "";
-  const availableStates = DATA.statesByCountry[selectedCountry] || ["Other"];
+  const selectedState = form.location?.state || "";
+  const availableStates = DATA.statesByCountry["India"] || [];
+  const availableDistricts = DATA.districtsByState[selectedState] || [];
 
   const fmt = (n) => (n ? parseInt(n).toLocaleString("en-IN") : "—");
   const cardPhoto = preview || "";
@@ -521,20 +529,6 @@ export default function AdminCreateProfile() {
             </h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <label className="flex flex-col gap-1.5">
-                <span className="label">{t("fieldCountry")} *</span>
-                <select
-                  className="field mt-1"
-                  required
-                  value={form.location?.country || ""}
-                  onChange={(e) => updateProfile("location", "country", e.target.value)}
-                >
-                  <option value="">Select Country</option>
-                  {DATA.locations.map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
-              </label>
-              <label className="flex flex-col gap-1.5">
                 <span className="label">{t("fieldState")} *</span>
                 <select
                   className="field mt-1"
@@ -544,9 +538,34 @@ export default function AdminCreateProfile() {
                 >
                   <option value="">Select State</option>
                   {availableStates.map((s) => (
-                    <option key={s} value={s}>{s}</option>
+                    <option key={s} value={s}>{t(s)}</option>
                   ))}
                 </select>
+              </label>
+              <label className="flex flex-col gap-1.5">
+                <span className="label">{language === "en" ? "District" : "மாவட்டம்"} *</span>
+                {availableDistricts.length > 0 ? (
+                  <select
+                    className="field mt-1"
+                    required
+                    value={form.location?.district || ""}
+                    onChange={(e) => updateProfile("location", "district", e.target.value)}
+                  >
+                    <option value="">{language === "en" ? "Select District" : "மாவட்டம் தேர்வு செய்க"}</option>
+                    {availableDistricts.map((d) => (
+                      <option key={d} value={d}>{t(d)}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    className="field mt-1"
+                    type="text"
+                    required
+                    value={form.location?.district || ""}
+                    onChange={(e) => updateProfile("location", "district", e.target.value)}
+                    placeholder={language === "en" ? "E.g., Coimbatore" : "உதாரணம்: கோயம்புத்தூர்"}
+                  />
+                )}
               </label>
               <label className="flex flex-col gap-1.5">
                 <span className="label">{t("fieldCity")} *</span>

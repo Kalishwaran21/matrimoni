@@ -221,7 +221,7 @@ export default function SearchMatches() {
               >
                 <option value="">{language === "en" ? "Select State" : "மாநிலம் தேர்வு செய்க"}</option>
                 {allStatesList.map((s) => (
-                  <option key={s} value={s}>{s}</option>
+                  <option key={s} value={s}>{t(s)}</option>
                 ))}
               </select>
             </label>
@@ -229,15 +229,15 @@ export default function SearchMatches() {
             {/* District */}
             <label>
               <span className="label">{language === "en" ? "District" : "மாவட்டம்"}</span>
-              {filters.state === "Tamil Nadu" ? (
+              {filters.state && DATA.districtsByState[filters.state]?.length > 0 ? (
                 <select
                   className="field mt-2"
                   value={filters.district || ""}
                   onChange={(e) => setFilters({ ...filters, district: e.target.value })}
                 >
                   <option value="">{language === "en" ? "Select District" : "மாவட்டம் தேர்வு செய்க"}</option>
-                  {DATA.tamilNaduDistricts.map((d) => (
-                    <option key={d} value={d}>{d}</option>
+                  {DATA.districtsByState[filters.state].map((d) => (
+                    <option key={d} value={d}>{t(d)}</option>
                   ))}
                 </select>
               ) : (
