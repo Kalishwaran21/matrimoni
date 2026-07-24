@@ -210,6 +210,7 @@ export default function Profile() {
 
   // Dropdown mappings
   const selectedReligion = form.religion?.religion || "";
+  const isHoroscopeRequired = selectedReligion !== "Christian" && selectedReligion !== "Muslim";
   const availableCastes = DATA.castes[selectedReligion] || ["Others"];
   const castesOptions = [...availableCastes];
   if (form.religion?.caste && !availableCastes.includes(form.religion.caste)) {
@@ -1029,10 +1030,10 @@ export default function Profile() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {/* 1. Rasi */}
           <label className="flex flex-col gap-1.5">
-            <span className="label">{t("fieldRasi")} *</span>
+            <span className="label">{t("fieldRasi")}{isHoroscopeRequired && " *"}</span>
             <select
               className="field mt-1"
-              required
+              required={isHoroscopeRequired}
               disabled={!isEditMode}
               value={form.horoscope?.rasi || ""}
               onChange={(e) => update("horoscope", "rasi", e.target.value)}
@@ -1043,10 +1044,10 @@ export default function Profile() {
           </label>
           {/* 2. Natchathiram (depends on Rasi) */}
           <label className="flex flex-col gap-1.5">
-            <span className="label">{language === "en" ? "Natchathiram" : "நட்சத்திரம்"} *</span>
+            <span className="label">{language === "en" ? "Natchathiram" : "நட்சத்திரம்"}{isHoroscopeRequired && " *"}</span>
             <select
               className="field mt-1"
-              required
+              required={isHoroscopeRequired}
               disabled={!isEditMode}
               value={form.horoscope?.nakshatra || ""}
               onChange={(e) => update("horoscope", "nakshatra", e.target.value)}
@@ -1057,10 +1058,10 @@ export default function Profile() {
           </label>
           {/* 3. Lagnam */}
           <label className="flex flex-col gap-1.5">
-            <span className="label">{language === "en" ? "Lagnam" : "லக்னம்"} *</span>
+            <span className="label">{language === "en" ? "Lagnam" : "லக்னம்"}{isHoroscopeRequired && " *"}</span>
             <select
               className="field mt-1"
-              required
+              required={isHoroscopeRequired}
               disabled={!isEditMode}
               value={form.horoscope?.lagnam || ""}
               onChange={(e) => update("horoscope", "lagnam", e.target.value)}
@@ -1071,10 +1072,10 @@ export default function Profile() {
           </label>
           {/* 4. Dosham */}
           <label className="flex flex-col gap-1.5">
-            <span className="label">{t("fieldDosham")} *</span>
+            <span className="label">{t("fieldDosham")}{isHoroscopeRequired && " *"}</span>
             <select
               className="field mt-1"
-              required
+              required={isHoroscopeRequired}
               disabled={!isEditMode}
               value={form.horoscope?.dosham || ""}
               onChange={(e) => update("horoscope", "dosham", e.target.value)}
