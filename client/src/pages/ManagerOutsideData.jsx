@@ -104,21 +104,30 @@ export default function ManagerOutsideData({ editMode = false, prefillData = nul
     setPreview(null);
   };
 
-    const submit = async (e) => {
+     const submit = async (e) => {
     e.preventDefault();
     setSaving(true);
+
+    const cleanedMobile = (credentials.mobile || form.contact?.phone || "").trim();
+    const cleanedEmail = (credentials.email || form.contact?.email || "").trim();
+    const computedEmail = cleanedEmail || `${cleanedMobile || Date.now()}@soulmate.in`;
 
     const formToSend = {
       ...form,
       location: {
         ...form.location,
         country: "India"
+      },
+      contact: {
+        ...form.contact,
+        phone: cleanedMobile,
+        email: computedEmail
       }
     };
     const formData = new FormData();
     formData.append("fullName", form.basic?.name || "");
-    formData.append("email", form.contact?.email || credentials.email || "");
-    formData.append("mobile", credentials.mobile || form.contact?.phone || "");
+    formData.append("email", computedEmail);
+    formData.append("mobile", cleanedMobile);
     formData.append("password", credentials.password);
     formData.append("gender", form.basic?.gender || "");
     formData.append("profileData", JSON.stringify(formToSend));
@@ -246,6 +255,7 @@ export default function ManagerOutsideData({ editMode = false, prefillData = nul
               className="field mt-1"
               type="tel"
               required
+              minLength={8}
               value={credentials.mobile}
               onChange={(e) => {
                  setCredentials(c => ({...c, mobile: e.target.value}));
@@ -260,9 +270,10 @@ export default function ManagerOutsideData({ editMode = false, prefillData = nul
               className="field mt-1"
               type="text"
               required
+              minLength={8}
               value={credentials.password}
               onChange={(e) => setCredentials(c => ({...c, password: e.target.value}))}
-              placeholder="Min 6 characters"
+              placeholder={language === "en" ? "Min 8 characters" : "குறைந்தது 8 எழுத்துக்கள்"}
             />
           </label>
           <label className="flex flex-col gap-1.5">
