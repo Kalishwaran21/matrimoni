@@ -664,8 +664,16 @@ export default function Profile() {
               disabled={!isEditMode}
               value={form.career?.profession || ""}
               onChange={(e) => {
-                update("career", "profession", e.target.value);
-                update("career", "jobTitle", "");
+                const val = e.target.value;
+                update("career", "profession", val);
+                if (val === "Not Working") {
+                  update("career", "jobTitle", "");
+                  update("career", "customJobTitle", "");
+                  update("career", "company", "");
+                  update("career", "salary", "");
+                } else {
+                  update("career", "jobTitle", "");
+                }
               }}
             >
               <option value="">{language === "en" ? "Select Category" : "பிரிவு தேர்வு செய்க"}</option>
@@ -676,7 +684,7 @@ export default function Profile() {
           </label>
 
           {/* Step 2: Specific Job Title (cascades from category) */}
-          {selectedJobCategory && (
+          {selectedJobCategory && selectedJobCategory !== "Not Working" && (
             <label className="flex flex-col gap-1.5">
               <span className="label">{language === "en" ? "Job Title / Role" : "குறிப்பிட்ட பணி"} *</span>
               <select
@@ -696,7 +704,7 @@ export default function Profile() {
           )}
 
           {/* If user picks 'Type my own' */}
-          {form.career?.jobTitle === "__custom__" && (
+          {form.career?.jobTitle === "__custom__" && selectedJobCategory !== "Not Working" && (
             <label className="flex flex-col gap-1.5">
               <span className="label">{language === "en" ? "Enter Job Title" : "பணி பெயர் உள்ளிடவும்"} *</span>
               <input
@@ -711,30 +719,34 @@ export default function Profile() {
           )}
 
           {/* Company Name */}
-          <label className="flex flex-col gap-1.5">
-            <span className="label">{language === "en" ? "Company / Organisation" : "நிறுவனம் / அமைப்பு"}</span>
-            <input
-              className="field mt-1"
-              disabled={!isEditMode}
-              value={form.career?.company || ""}
-              onChange={(e) => update("career", "company", e.target.value)}
-              placeholder={language === "en" ? "E.g., TCS, Infosys, Govt Hospital..." : "உதாரணம்: டி.சி.எஸ், இன்போசிஸ்..."}
-            />
-          </label>
+          {selectedJobCategory !== "Not Working" && (
+            <label className="flex flex-col gap-1.5">
+              <span className="label">{language === "en" ? "Company / Organisation" : "நிறுவனம் / அமைப்பு"}</span>
+              <input
+                className="field mt-1"
+                disabled={!isEditMode}
+                value={form.career?.company || ""}
+                onChange={(e) => update("career", "company", e.target.value)}
+                placeholder={language === "en" ? "E.g., TCS, Infosys, Govt Hospital..." : "உதாரணம்: டி.சி.எஸ், இன்போசிஸ்..."}
+              />
+            </label>
+          )}
 
           {/* Monthly Salary */}
-          <label className="flex flex-col gap-1.5">
-            <span className="label">{language === "en" ? "Monthly Salary (₹)" : "மாத சம்பளம் (₹)"}</span>
-            <input
-              className="field mt-1"
-              type="number"
-              min="0"
-              disabled={!isEditMode}
-              value={form.career?.salary || ""}
-              onChange={(e) => update("career", "salary", e.target.value)}
-              placeholder={language === "en" ? "E.g., 35000" : "உதாரணம்: 35000"}
-            />
-          </label>
+          {selectedJobCategory !== "Not Working" && (
+            <label className="flex flex-col gap-1.5">
+              <span className="label">{language === "en" ? "Monthly Salary (₹)" : "மாத சம்பளம் (₹)"}</span>
+              <input
+                className="field mt-1"
+                type="number"
+                min="0"
+                disabled={!isEditMode}
+                value={form.career?.salary || ""}
+                onChange={(e) => update("career", "salary", e.target.value)}
+                placeholder={language === "en" ? "E.g., 35000" : "உதாரணம்: 35000"}
+              />
+            </label>
+          )}
         </div>
       </section>
 

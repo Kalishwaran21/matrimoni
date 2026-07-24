@@ -674,7 +674,15 @@ export default function ManagerOutsideData({ editMode = false, prefillData = nul
               required
               disabled={!isEditMode}
               value={form.career?.profession || ""}
-              onChange={(e) => update("career", "profession", e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                update("career", "profession", val);
+                if (val === "Not Working") {
+                  update("career", "jobTitle", "");
+                  update("career", "company", "");
+                  update("career", "salary", "");
+                }
+              }}
             >
               <option value="">Select Profession</option>
               {DATA.professions.map((p) => (
@@ -682,38 +690,42 @@ export default function ManagerOutsideData({ editMode = false, prefillData = nul
               ))}
             </select>
           </label>
-          <label className="flex flex-col gap-1.5">
-            <span className="label">{t("fieldJobTitle")} *</span>
-            <input
-              className="field mt-1"
-              required
-              disabled={!isEditMode}
-              value={form.career?.jobTitle || ""}
-              onChange={(e) => update("career", "jobTitle", e.target.value)}
-              placeholder={language === "en" ? "E.g., Senior iOS Developer" : "உதாரணம்: சீனியர் ஐஓஎஸ் டெவலப்பர்"}
-            />
-          </label>
-          <label className="flex flex-col gap-1.5">
-            <span className="label">{t("fieldCompany")}</span>
-            <input
-              className="field mt-1"
-              disabled={!isEditMode}
-              value={form.career?.company || ""}
-              onChange={(e) => update("career", "company", e.target.value)}
-              placeholder={language === "en" ? "E.g., Infosys Ltd" : "உதாரணம்: இன்போசிஸ் நிறுவனம்"}
-            />
-          </label>
-          <label className="flex flex-col gap-1.5">
-            <span className="label">{t("fieldSalary")}</span>
-            <input
-              className="field mt-1"
-              type="number"
-              disabled={!isEditMode}
-              value={form.career?.salary || ""}
-              onChange={(e) => update("career", "salary", e.target.value)}
-              placeholder={language === "en" ? "E.g., 50000" : "உதாரணம்: 50000"}
-            />
-          </label>
+          {form.career?.profession !== "Not Working" && (
+            <>
+              <label className="flex flex-col gap-1.5">
+                <span className="label">{t("fieldJobTitle")} *</span>
+                <input
+                  className="field mt-1"
+                  required
+                  disabled={!isEditMode}
+                  value={form.career?.jobTitle || ""}
+                  onChange={(e) => update("career", "jobTitle", e.target.value)}
+                  placeholder={language === "en" ? "E.g., Senior iOS Developer" : "உதாரணம்: சீனியர் ஐஓஎஸ் டெவலப்பர்"}
+                />
+              </label>
+              <label className="flex flex-col gap-1.5">
+                <span className="label">{t("fieldCompany")}</span>
+                <input
+                  className="field mt-1"
+                  disabled={!isEditMode}
+                  value={form.career?.company || ""}
+                  onChange={(e) => update("career", "company", e.target.value)}
+                  placeholder={language === "en" ? "E.g., Infosys Ltd" : "உதாரணம்: இன்போசிஸ் நிறுவனம்"}
+                />
+              </label>
+              <label className="flex flex-col gap-1.5">
+                <span className="label">{t("fieldSalary")}</span>
+                <input
+                  className="field mt-1"
+                  type="number"
+                  disabled={!isEditMode}
+                  value={form.career?.salary || ""}
+                  onChange={(e) => update("career", "salary", e.target.value)}
+                  placeholder={language === "en" ? "E.g., 50000" : "உதாரணம்: 50000"}
+                />
+              </label>
+            </>
+          )}
         </div>
       </section>
 

@@ -625,7 +625,15 @@ export default function AdminCreateProfile() {
                   className="field mt-1"
                   required
                   value={form.career?.profession || ""}
-                  onChange={(e) => updateProfile("career", "profession", e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    updateProfile("career", "profession", val);
+                    if (val === "Not Working") {
+                      updateProfile("career", "jobTitle", "");
+                      updateProfile("career", "company", "");
+                      updateProfile("career", "salary", "");
+                    }
+                  }}
                 >
                   <option value="">Select Profession</option>
                   {DATA.professions.map((p) => (
@@ -633,35 +641,39 @@ export default function AdminCreateProfile() {
                   ))}
                 </select>
               </label>
-              <label className="flex flex-col gap-1.5">
-                <span className="label">{t("fieldJobTitle")} *</span>
-                <input
-                  className="field mt-1"
-                  required
-                  value={form.career?.jobTitle || ""}
-                  onChange={(e) => updateProfile("career", "jobTitle", e.target.value)}
-                  placeholder={language === "en" ? "E.g., Senior iOS Developer" : "உதாரணம்: சீனியர் ஐஓஎஸ் டெவலப்பர்"}
-                />
-              </label>
-              <label className="flex flex-col gap-1.5">
-                <span className="label">{t("fieldCompany")}</span>
-                <input
-                  className="field mt-1"
-                  value={form.career?.company || ""}
-                  onChange={(e) => updateProfile("career", "company", e.target.value)}
-                  placeholder={language === "en" ? "E.g., Infosys Ltd" : "உதாரணம்: இன்போசிஸ் நிறுவனம்"}
-                />
-              </label>
-              <label className="flex flex-col gap-1.5">
-                <span className="label">{t("fieldSalary")}</span>
-                <input
-                  className="field mt-1"
-                  type="number"
-                  value={form.career?.salary || ""}
-                  onChange={(e) => updateProfile("career", "salary", e.target.value)}
-                  placeholder={language === "en" ? "E.g., 850000" : "உதாரணம்: 850000"}
-                />
-              </label>
+              {form.career?.profession !== "Not Working" && (
+                <>
+                  <label className="flex flex-col gap-1.5">
+                    <span className="label">{t("fieldJobTitle")} *</span>
+                    <input
+                      className="field mt-1"
+                      required
+                      value={form.career?.jobTitle || ""}
+                      onChange={(e) => updateProfile("career", "jobTitle", e.target.value)}
+                      placeholder={language === "en" ? "E.g., Senior iOS Developer" : "உதாரணம்: சீனியர் ஐஓஎஸ் டெவலப்பர்"}
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1.5">
+                    <span className="label">{t("fieldCompany")}</span>
+                    <input
+                      className="field mt-1"
+                      value={form.career?.company || ""}
+                      onChange={(e) => updateProfile("career", "company", e.target.value)}
+                      placeholder={language === "en" ? "E.g., Infosys Ltd" : "உதாரணம்: இன்போசிஸ் நிறுவனம்"}
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1.5">
+                    <span className="label">{t("fieldSalary")}</span>
+                    <input
+                      className="field mt-1"
+                      type="number"
+                      value={form.career?.salary || ""}
+                      onChange={(e) => updateProfile("career", "salary", e.target.value)}
+                      placeholder={language === "en" ? "E.g., 850000" : "உதாரணம்: 850000"}
+                    />
+                  </label>
+                </>
+              )}
             </div>
           </section>
 
