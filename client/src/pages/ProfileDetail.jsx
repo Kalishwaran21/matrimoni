@@ -170,7 +170,7 @@ export default function ProfileDetail() {
               <span className="flex items-center gap-2">
                 <Heart size={15} className="text-maroon-400" />
                 {profile.religion?.religion ? t(profile.religion.religion) : "Religion not set"}
-                {profile.religion?.caste ? ` · ${t(profile.religion.caste)}` : ""}
+                {profile.religion?.caste ? ` · ${language === "ta" && profile.religion.casteTamil ? profile.religion.casteTamil : t(profile.religion.caste)}` : ""}
               </span>
             </div>
 
@@ -272,6 +272,12 @@ export default function ProfileDetail() {
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {entries.map(([key, value]) => {
                 let displayVal = t(String(value));
+                if (key === "caste" && language === "ta" && profile.religion?.casteTamil) {
+                  displayVal = profile.religion.casteTamil;
+                }
+                if (key === "subCaste" && language === "ta" && profile.religion?.subCasteTamil) {
+                  displayVal = profile.religion.subCasteTamil;
+                }
                 if (key === "dob") {
                   try {
                     displayVal = new Date(value).toISOString().split("T")[0];

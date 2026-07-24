@@ -8,6 +8,7 @@ import Spinner from "../components/Spinner";
 import { DATA } from "../utils/constants";
 
 import { useLanguage } from "../context/LanguageContext";
+import { translateToTamil } from "../utils/translateText";
 
 const TABS = ["basic", "religion", "location", "education", "career", "family", "contact", "horoscope", "assets", "about", "photos", "preferences"];
 const initial = Object.fromEntries(TABS.map((s) => [s, s === "about" ? "" : {}]));
@@ -200,6 +201,17 @@ export default function ManagerOutsideData({ editMode = false, prefillData = nul
   // Dropdown mappings
   const selectedReligion = form.religion?.religion || "";
   const availableCastes = DATA.castes[selectedReligion] || ["Others"];
+  const castesOptions = [...availableCastes];
+  if (form.religion?.caste && !availableCastes.includes(form.religion.caste)) {
+    const othersIdx = castesOptions.indexOf("Others");
+    if (othersIdx !== -1) {
+      castesOptions.splice(othersIdx, 0, form.religion.caste);
+    } else {
+      castesOptions.push(form.religion.caste);
+    }
+  }
+  const isCustomCaste = form.religion?.caste === "Others" || 
+    (form.religion?.caste && !availableCastes.filter(c => c !== "Others").includes(form.religion?.caste));
 
   const selectedRasi = form.horoscope?.rasi || "";
   const availableStars = DATA.rasiData[selectedRasi] || [];
@@ -534,22 +546,82 @@ export default function ManagerOutsideData({ editMode = false, prefillData = nul
               required
               disabled={!isEditMode}
               value={form.religion?.caste || ""}
-              onChange={(e) => update("religion", "caste", e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                update("religion", "caste", val);
+                if (val !== "Others") {
+                  update("religion", "casteTamil", "");
+                }
+              }}
             >
               <option value="">Select Caste</option>
-              {availableCastes.map((c) => (
+              {castesOptions.map((c) => (
                 <option key={c} value={c}>{t(c)}</option>
               ))}
             </select>
           </label>
+
+          {/* Custom Caste Inputs */}
+          {isCustomCaste && (
+            <>
+              <label className="flex flex-col gap-1.5 animate-fade-in">
+                <span className="label">{language === "en" ? "Custom Caste (English) *" : "தனிப்பயன் சாதி (ஆங்கிலம்) *"}</span>
+                <input
+                  className="field mt-1"
+                  required
+                  disabled={!isEditMode}
+                  value={form.religion?.caste === "Others" ? "" : form.religion?.caste || ""}
+                  onChange={(e) => update("religion", "caste", e.target.value)}
+                  onBlur={async (e) => {
+                    const translated = await translateToTamil(e.target.value);
+                    if (translated) {
+                      update("religion", "casteTamil", translated);
+                    }
+                  }}
+                  placeholder="Type custom caste in English"
+                />
+              </label>
+              <label className="flex flex-col gap-1.5 animate-fade-in">
+                <span className="label">{language === "en" ? "Custom Caste (Tamil) *" : "தனிப்பயன் சாதி (தமிழ்) *"}</span>
+                <input
+                  className="field mt-1"
+                  required
+                  disabled={!isEditMode}
+                  value={form.religion?.casteTamil || ""}
+                  onChange={(e) => update("religion", "casteTamil", e.target.value)}
+                  placeholder="Type custom caste in Tamil"
+                />
+              </label>
+            </>
+          )}
+
+          {/* Sub Caste (English) */}
           <label className="flex flex-col gap-1.5">
-            <span className="label">{t("fieldSubcaste")}</span>
+            <span className="label">{language === "en" ? "Sub-Caste (English)" : "உட்சாதி (ஆங்கிலம்)"}</span>
             <input
               className="field mt-1"
               disabled={!isEditMode}
               value={form.religion?.subCaste || ""}
               onChange={(e) => update("religion", "subCaste", e.target.value)}
+              onBlur={async (e) => {
+                const translated = await translateToTamil(e.target.value);
+                if (translated) {
+                  update("religion", "subCasteTamil", translated);
+                }
+              }}
               placeholder={language === "en" ? "E.g., Iyer / Sect" : "உதாரணம்: ஐயர் / பிரிவு"}
+            />
+          </label>
+
+          {/* Sub Caste (Tamil) */}
+          <label className="flex flex-col gap-1.5 animate-fade-in">
+            <span className="label">{language === "en" ? "Sub-Caste (Tamil)" : "உட்சாதி (தமிழ்)"}</span>
+            <input
+              className="field mt-1"
+              disabled={!isEditMode}
+              value={form.religion?.subCasteTamil || ""}
+              onChange={(e) => update("religion", "subCasteTamil", e.target.value)}
+              placeholder="உதாரணம்: ஐயர், ஐயங்கார்..."
             />
           </label>
           <label className="flex flex-col gap-1.5">

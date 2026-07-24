@@ -20,7 +20,9 @@ const profileSchema = new mongoose.Schema(
     religion: {
       religion: String,
       caste: String,
+      casteTamil: String,
       subCaste: String,
+      subCasteTamil: String,
       gothram: String
     },
     location: {
