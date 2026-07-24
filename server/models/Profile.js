@@ -37,9 +37,11 @@ const profileSchema = new mongoose.Schema(
       college: String
     },
     career: {
+      profession: String,
       jobTitle: String,
       customJobTitle: String,
       company: String,
+      workingPlace: String,
       salary: Number
     },
     family: {

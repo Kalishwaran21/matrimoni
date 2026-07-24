@@ -670,6 +670,7 @@ export default function Profile() {
                   update("career", "jobTitle", "");
                   update("career", "customJobTitle", "");
                   update("career", "company", "");
+                  update("career", "workingPlace", "");
                   update("career", "salary", "");
                 } else {
                   update("career", "jobTitle", "");
@@ -728,6 +729,20 @@ export default function Profile() {
                 value={form.career?.company || ""}
                 onChange={(e) => update("career", "company", e.target.value)}
                 placeholder={language === "en" ? "E.g., TCS, Infosys, Govt Hospital..." : "உதாரணம்: டி.சி.எஸ், இன்போசிஸ்..."}
+              />
+            </label>
+          )}
+
+          {/* Working Place */}
+          {selectedJobCategory !== "Not Working" && (
+            <label className="flex flex-col gap-1.5">
+              <span className="label">{language === "en" ? "Working Place / Location" : "வேலை செய்யும் இடம்"}</span>
+              <input
+                className="field mt-1"
+                disabled={!isEditMode}
+                value={form.career?.workingPlace || ""}
+                onChange={(e) => update("career", "workingPlace", e.target.value)}
+                placeholder={language === "en" ? "E.g., Chennai, Bangalore, Singapore..." : "உதாரணம்: சென்னை, பெங்களூர், சிங்கப்பூர்..."}
               />
             </label>
           )}

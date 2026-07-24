@@ -637,6 +637,7 @@ export default function AdminCreateProfile() {
                     if (val === "Not Working") {
                       updateProfile("career", "jobTitle", "");
                       updateProfile("career", "company", "");
+                      updateProfile("career", "workingPlace", "");
                       updateProfile("career", "salary", "");
                     }
                   }}
@@ -666,6 +667,15 @@ export default function AdminCreateProfile() {
                       value={form.career?.company || ""}
                       onChange={(e) => updateProfile("career", "company", e.target.value)}
                       placeholder={language === "en" ? "E.g., Infosys Ltd" : "உதாரணம்: இன்போசிஸ் நிறுவனம்"}
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1.5">
+                    <span className="label">{t("fieldWorkingPlace")}</span>
+                    <input
+                      className="field mt-1"
+                      value={form.career?.workingPlace || ""}
+                      onChange={(e) => updateProfile("career", "workingPlace", e.target.value)}
+                      placeholder={language === "en" ? "E.g., Chennai, Bangalore, Singapore..." : "உதாரணம்: சென்னை, பெங்களூர், சிங்கப்பூர்..."}
                     />
                   </label>
                   <label className="flex flex-col gap-1.5">
