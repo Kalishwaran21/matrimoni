@@ -261,7 +261,10 @@ export default function ProfileDetail() {
 
       {/* Detail sections */}
       {["basic", "religion", "career", "family", "assets"].map((section) => {
-        const entries = Object.entries(profile[section] || {}).filter(([, v]) => v !== "" && v !== null && v !== undefined);
+        const entries = Object.entries(profile[section] || {}).filter(([k, v]) => 
+          v !== "" && v !== null && v !== undefined &&
+          k !== "landValue" && k !== "landUnit" && k !== "assetValueLakhs"
+        );
         if (!entries.length) return null;
         return (
           <section key={section} className="panel">
@@ -293,7 +296,10 @@ export default function ProfileDetail() {
         <h2 className="mb-5 text-xl font-black text-maroon-800">Horoscope Details</h2>
         {isContactShared ? (
           (() => {
-            const entries = Object.entries(profile.horoscope || {}).filter(([, v]) => v !== "" && v !== null && v !== undefined);
+            const order = ["rasi", "nakshatra", "lagnam", "dosham"];
+            const entries = order
+              .map((k) => [k, profile.horoscope?.[k]])
+              .filter(([, v]) => v !== "" && v !== null && v !== undefined);
             if (!entries.length) {
               return <p className="text-slate-500 text-sm">No horoscope details provided.</p>;
             }

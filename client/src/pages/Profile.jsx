@@ -624,10 +624,9 @@ export default function Profile() {
           {/* Department / Specialization — only show when degree chosen */}
           {showDeptField && (
             <label className="flex flex-col gap-1.5">
-              <span className="label">{language === "en" ? "Department / Specialization" : "துறை / சிறப்பு பிரிவு"} *</span>
+              <span className="label">{language === "en" ? "Department / Specialization" : "துறை / சிறப்பு பிரிவு"}</span>
               <input
                 className="field mt-1"
-                required
                 disabled={!isEditMode}
                 value={form.education?.department || ""}
                 onChange={(e) => update("education", "department", e.target.value)}

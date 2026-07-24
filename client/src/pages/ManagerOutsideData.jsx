@@ -11,6 +11,7 @@ import { useLanguage } from "../context/LanguageContext";
 
 const TABS = ["basic", "religion", "location", "education", "career", "family", "contact", "horoscope", "assets", "about", "photos", "preferences"];
 const initial = Object.fromEntries(TABS.map((s) => [s, s === "about" ? "" : {}]));
+const degreeNeedsDept = ["B.E","B.Tech","B.Sc","B.Com","BBA","BCA","BA","B.Arch","M.E","M.Tech","M.Sc","M.Com","MBA","MCA","MA","M.Phil","PhD","Doctorate","Diploma","ITI","MBBS","BDS","B.Pharm","B.Nursing","M.Pharm","MD","MS","LLB"];
 
 export default function ManagerOutsideData({ editMode = false, prefillData = null, onSuccess = null }) {
   const navigate = useNavigate();
@@ -32,6 +33,7 @@ export default function ManagerOutsideData({ editMode = false, prefillData = nul
   const [dobMonth, setDobMonth] = useState("");
   const [dobYear, setDobYear] = useState("");
   const cardRef = useRef(null);
+  const showDeptField = degreeNeedsDept.includes(form.education?.degree || "");
 
   useEffect(() => {
     if (prefillData) {
@@ -455,19 +457,6 @@ export default function ManagerOutsideData({ editMode = false, prefillData = nul
             />
           </label>
           <label className="flex flex-col gap-1.5">
-            <span className="label">{t("fieldWeight")}</span>
-            <input
-              className="field mt-1"
-              type="number"
-              min="30"
-              max="200"
-              disabled={!isEditMode}
-              value={form.basic?.weight || ""}
-              onChange={(e) => update("basic", "weight", e.target.value)}
-              placeholder={language === "en" ? "E.g., 60" : "உதாரணம்: 60"}
-            />
-          </label>
-          <label className="flex flex-col gap-1.5">
             <span className="label">{t("fieldPhysical")} *</span>
             <select
               className="field mt-1"
@@ -647,6 +636,18 @@ export default function ManagerOutsideData({ editMode = false, prefillData = nul
               ))}
             </select>
           </label>
+          {showDeptField && (
+            <label className="flex flex-col gap-1.5">
+              <span className="label">{language === "en" ? "Department / Specialization" : "துறை / சிறப்பு பிரிவு"}</span>
+              <input
+                className="field mt-1"
+                disabled={!isEditMode}
+                value={form.education?.department || ""}
+                onChange={(e) => update("education", "department", e.target.value)}
+                placeholder={language === "en" ? "E.g., Computer Science, Mechanical, Commerce..." : "உதாரணம்: கணினி அறிவியல், இயந்திரவியல்..."}
+              />
+            </label>
+          )}
           <label className="flex flex-col gap-1.5">
             <span className="label">{t("fieldCollege")}</span>
             <input
@@ -857,19 +858,6 @@ export default function ManagerOutsideData({ editMode = false, prefillData = nul
             </select>
           </label>
           <label className="flex flex-col gap-1.5">
-            <span className="label">Lagnam (லக்னம்) *</span>
-            <select
-              className="field mt-1"
-              required
-              disabled={!isEditMode}
-              value={form.horoscope?.lagnam || ""}
-              onChange={(e) => update("horoscope", "lagnam", e.target.value)}
-            >
-              <option value="">Select Lagnam</option>
-              {Object.keys(DATA.rasiData).map((r) => <option key={r} value={r}>{t(r)}</option>)}
-            </select>
-          </label>
-          <label className="flex flex-col gap-1.5">
             <span className="label">{t("fieldStar")} *</span>
             <select
               className="field mt-1"
@@ -880,6 +868,19 @@ export default function ManagerOutsideData({ editMode = false, prefillData = nul
             >
               <option value="">Select Natchathiram</option>
               {availableStars.map((s) => <option key={s} value={s}>{t(s)}</option>)}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="label">Lagnam (லக்னம்) *</span>
+            <select
+              className="field mt-1"
+              required
+              disabled={!isEditMode}
+              value={form.horoscope?.lagnam || ""}
+              onChange={(e) => update("horoscope", "lagnam", e.target.value)}
+            >
+              <option value="">Select Lagnam</option>
+              {Object.keys(DATA.rasiData).map((r) => <option key={r} value={r}>{t(r)}</option>)}
             </select>
           </label>
           <label className="flex flex-col gap-1.5">
@@ -914,62 +915,35 @@ export default function ManagerOutsideData({ editMode = false, prefillData = nul
         <h2 className="mb-5 text-xl font-black text-maroon-800 flex items-center gap-2">
           <span>🏡</span> {t("secAssets")}
         </h2>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2">
+          {/* House Type */}
           <label className="flex flex-col gap-1.5">
-            <span className="label">{t("fieldHouse")}</span>
+            <span className="label">{language === "en" ? "House / Residence" : "வீடு / குடியிருப்பு"}</span>
             <select
               className="field mt-1"
               disabled={!isEditMode}
               value={form.assets?.house || ""}
               onChange={(e) => update("assets", "house", e.target.value)}
             >
-              <option value="">Select House Type</option>
-              <option value="Own House">{t("Own House")}</option>
-              <option value="Rented House">{t("Rented House")}</option>
-              <option value="None / Others">{t("None / Others")}</option>
+              <option value="">{language === "en" ? "Select House Type" : "வீடு வகை தேர்வு"}</option>
+              <option value="Own House">{language === "en" ? "Own House" : "சொந்த வீடு"}</option>
+              <option value="Rented House">{language === "en" ? "Rented House" : "வாடகை வீடு"}</option>
+              <option value="None / Others">{language === "en" ? "None / Others" : "இல்லை / பிற"}</option>
             </select>
           </label>
-          <label className="flex flex-col gap-1.5">
-            <span className="label">{language === "en" ? "Land Details" : "நில விவரங்கள்"}</span>
-            <div className="flex gap-2">
-              <input
-                className="field mt-1 flex-1"
-                type="number"
-                min="0"
-                step="0.01"
-                disabled={!isEditMode}
-                value={form.assets?.landValue || ""}
-                onChange={(e) => update("assets", "landValue", e.target.value)}
-                placeholder="E.g., 2"
-              />
-              <select
-                className="field mt-1 flex-1"
-                disabled={!isEditMode}
-                value={form.assets?.landUnit || ""}
-                onChange={(e) => update("assets", "landUnit", e.target.value)}
-              >
-                <option value="">Select Unit</option>
-                <option value="Acres">{language === "en" ? "Acres" : "ஏக்கர்"}</option>
-                <option value="Cents">{language === "en" ? "Cents" : "சென்ட்"}</option>
-              </select>
-            </div>
-          </label>
-          <label className="flex flex-col gap-1.5">
-            <span className="label">{language === "en" ? "Total Asset Value (in Lakhs)" : "மொத்த சொத்து மதிப்பு (லட்சத்தில்)"}</span>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">₹</span>
-              <input
-                className="field mt-1 pl-8 pr-16 w-full"
-                type="number"
-                min="0"
-                step="0.1"
-                disabled={!isEditMode}
-                value={form.assets?.assetValueLakhs || ""}
-                onChange={(e) => update("assets", "assetValueLakhs", e.target.value)}
-                placeholder="50"
-              />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">Lakhs</span>
-            </div>
+
+          {/* Free-text asset description */}
+          <label className="flex flex-col gap-1.5 sm:col-span-2">
+            <span className="label">{language === "en" ? "Asset Details (Describe your property, land, vehicles, etc.)" : "சொத்து விவரங்கள் (நிலம், வாகனம், சொத்து குறிப்புகள்)"}</span>
+            <textarea
+              className="field mt-1 resize-y min-h-[100px]"
+              disabled={!isEditMode}
+              value={form.assets?.description || ""}
+              onChange={(e) => update("assets", "description", e.target.value)}
+              placeholder={language === "en"
+                ? "Describe your assets freely. E.g.: 2 acres agricultural land in Erode, 1 own house in Chennai, 1 car..."
+                : "உதாரணம்: ஈரோட்டில் 2 ஏக்கர் நிலம், சென்னையில் சொந்த வீடு, 1 கார்..."}
+            />
           </label>
         </div>
       </section>

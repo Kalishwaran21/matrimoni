@@ -10,6 +10,7 @@ import { useLanguage } from "../context/LanguageContext";
 
 const TABS = ["basic", "religion", "location", "education", "career", "family", "horoscope", "assets", "about", "photos", "preferences"];
 const initialProfileState = Object.fromEntries(TABS.map((s) => [s, s === "about" ? "" : {}]));
+const degreeNeedsDept = ["B.E","B.Tech","B.Sc","B.Com","BBA","BCA","BA","B.Arch","M.E","M.Tech","M.Sc","M.Com","MBA","MCA","MA","M.Phil","PhD","Doctorate","Diploma","ITI","MBBS","BDS","B.Pharm","B.Nursing","M.Pharm","MD","MS","LLB"];
 
 export default function AdminCreateProfile() {
   const navigate = useNavigate();
@@ -26,6 +27,7 @@ export default function AdminCreateProfile() {
 
   // Step 2: Profile fields
   const [form, setForm] = useState(initialProfileState);
+  const showDeptField = degreeNeedsDept.includes(form.education?.degree || "");
   const [photoFile, setPhotoFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -420,18 +422,6 @@ export default function AdminCreateProfile() {
                 />
               </label>
               <label className="flex flex-col gap-1.5">
-                <span className="label">{t("fieldWeight")}</span>
-                <input
-                  className="field mt-1"
-                  type="number"
-                  min="30"
-                  max="200"
-                  value={form.basic?.weight || ""}
-                  onChange={(e) => updateProfile("basic", "weight", e.target.value)}
-                  placeholder={language === "en" ? "E.g., 60" : "உதாரணம்: 60"}
-                />
-              </label>
-              <label className="flex flex-col gap-1.5">
                 <span className="label">{t("fieldPhysical")} *</span>
                 <select
                   className="field mt-1"
@@ -600,6 +590,17 @@ export default function AdminCreateProfile() {
                   ))}
                 </select>
               </label>
+              {showDeptField && (
+                <label className="flex flex-col gap-1.5">
+                  <span className="label">{language === "en" ? "Department / Specialization" : "துறை / சிறப்பு பிரிவு"}</span>
+                  <input
+                    className="field mt-1"
+                    value={form.education?.department || ""}
+                    onChange={(e) => updateProfile("education", "department", e.target.value)}
+                    placeholder={language === "en" ? "E.g., Computer Science, Mechanical, Commerce..." : "உதாரணம்: கணினி அறிவியல், இயந்திரவியல்..."}
+                  />
+                </label>
+              )}
               <label className="flex flex-col gap-1.5">
                 <span className="label">{t("fieldCollege")}</span>
                 <input
@@ -766,18 +767,6 @@ export default function AdminCreateProfile() {
                 </select>
               </label>
               <label className="flex flex-col gap-1.5">
-                <span className="label">Lagnam (லக்னம்) *</span>
-                <select
-                  className="field mt-1"
-                  required
-                  value={form.horoscope?.lagnam || ""}
-                  onChange={(e) => updateProfile("horoscope", "lagnam", e.target.value)}
-                >
-                  <option value="">Select Lagnam</option>
-                  {Object.keys(DATA.rasiData).map((r) => <option key={r} value={r}>{r}</option>)}
-                </select>
-              </label>
-              <label className="flex flex-col gap-1.5">
                 <span className="label">{t("fieldStar")} *</span>
                 <select
                   className="field mt-1"
@@ -787,6 +776,18 @@ export default function AdminCreateProfile() {
                 >
                   <option value="">Select Natchathiram</option>
                   {availableStars.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </label>
+              <label className="flex flex-col gap-1.5">
+                <span className="label">Lagnam (லக்னம்) *</span>
+                <select
+                  className="field mt-1"
+                  required
+                  value={form.horoscope?.lagnam || ""}
+                  onChange={(e) => updateProfile("horoscope", "lagnam", e.target.value)}
+                >
+                  <option value="">Select Lagnam</option>
+                  {Object.keys(DATA.rasiData).map((r) => <option key={r} value={r}>{r}</option>)}
                 </select>
               </label>
               <label className="flex flex-col gap-1.5">
@@ -819,38 +820,29 @@ export default function AdminCreateProfile() {
             <h2 className="mb-5 text-xl font-black text-maroon-800 flex items-center gap-2">
               <span>🏡</span> {t("secAssets")}
             </h2>
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2">
               <label className="flex flex-col gap-1.5">
-                <span className="label">{t("fieldHouse")}</span>
+                <span className="label">{language === "en" ? "House / Residence" : "வீடு / குடியிருப்பு"}</span>
                 <select
                   className="field mt-1"
                   value={form.assets?.house || ""}
                   onChange={(e) => updateProfile("assets", "house", e.target.value)}
                 >
-                  <option value="">Select House Type</option>
-                  <option value="Own House">{t("Own House")}</option>
-                  <option value="Rented House">{t("Rented House")}</option>
-                  <option value="None / Others">{t("None / Others")}</option>
+                  <option value="">{language === "en" ? "Select House Type" : "வீடு வகை தேர்வு"}</option>
+                  <option value="Own House">{language === "en" ? "Own House" : "சொந்த வீடு"}</option>
+                  <option value="Rented House">{language === "en" ? "Rented House" : "வாடகை வீடு"}</option>
+                  <option value="None / Others">{language === "en" ? "None / Others" : "இல்லை / பிற"}</option>
                 </select>
               </label>
-              <label className="flex flex-col gap-1.5">
-                <span className="label">{t("fieldLand")}</span>
-                <input
-                  className="field mt-1"
-                  type="text"
-                  value={form.assets?.land || ""}
-                  onChange={(e) => updateProfile("assets", "land", e.target.value)}
-                  placeholder={language === "en" ? "E.g., 2 Acres / 5 Cents" : "உதாரணம்: 2 ஏக்கர் / 5 சென்ட்"}
-                />
-              </label>
-              <label className="flex flex-col gap-1.5">
-                <span className="label">{t("fieldAssetValue")}</span>
-                <input
-                  className="field mt-1"
-                  type="text"
-                  value={form.assets?.totalValue || ""}
-                  onChange={(e) => updateProfile("assets", "totalValue", e.target.value)}
-                  placeholder={language === "en" ? "E.g., ₹50 Lakhs / ₹1 Crore" : "உதாரணம்: ₹50 லட்சம் / ₹1 கோடி"}
+              <label className="flex flex-col gap-1.5 sm:col-span-2">
+                <span className="label">{language === "en" ? "Asset Details (Describe your property, land, vehicles, etc.)" : "சொத்து விவரங்கள் (நிலம், வாகனம், சொத்து குறிப்புகள்)"}</span>
+                <textarea
+                  className="field mt-1 resize-y min-h-[100px]"
+                  value={form.assets?.description || ""}
+                  onChange={(e) => updateProfile("assets", "description", e.target.value)}
+                  placeholder={language === "en"
+                    ? "Describe your assets freely. E.g.: 2 acres agricultural land in Erode, 1 own house in Chennai, 1 car..."
+                    : "உதாரணம்: ஈரோட்டில் 2 ஏக்கர் நிலம், சென்னையில் சொந்த வீடு, 1 கார்..."}
                 />
               </label>
             </div>
