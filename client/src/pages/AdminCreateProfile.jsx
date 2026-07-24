@@ -7,7 +7,7 @@ import { toast } from "../components/Toast";
 import Spinner from "../components/Spinner";
 import { DATA } from "../utils/constants";
 import { useLanguage } from "../context/LanguageContext";
-import { translateToTamil } from "../utils/translateText";
+import { translateToTamil, translateToEnglish } from "../utils/translateText";
 
 const TABS = ["basic", "religion", "location", "education", "career", "family", "horoscope", "assets", "about", "photos", "preferences"];
 const initialProfileState = Object.fromEntries(TABS.map((s) => [s, s === "about" ? "" : {}]));
@@ -514,62 +514,78 @@ export default function AdminCreateProfile() {
               {/* Custom Caste Inputs */}
               {isCustomCaste && (
                 <>
-                  <label className="flex flex-col gap-1.5 animate-fade-in">
-                    <span className="label">{language === "en" ? "Custom Caste (English) *" : "தனிப்பயன் சாதி (ஆங்கிலம்) *"}</span>
-                    <input
-                      className="field mt-1"
-                      required
-                      value={form.religion?.caste === "Others" ? "" : form.religion?.caste || ""}
-                      onChange={(e) => updateProfile("religion", "caste", e.target.value)}
-                      onBlur={async (e) => {
-                        const translated = await translateToTamil(e.target.value);
-                        if (translated) {
-                          updateProfile("religion", "casteTamil", translated);
-                        }
-                      }}
-                      placeholder="Type custom caste in English"
-                    />
-                  </label>
-                  <label className="flex flex-col gap-1.5 animate-fade-in">
-                    <span className="label">{language === "en" ? "Custom Caste (Tamil) *" : "தனிப்பயன் சாதி (தமிழ்) *"}</span>
-                    <input
-                      className="field mt-1"
-                      required
-                      value={form.religion?.casteTamil || ""}
-                      onChange={(e) => updateProfile("religion", "casteTamil", e.target.value)}
-                      placeholder="Type custom caste in Tamil"
-                    />
-                  </label>
+                  {language === "en" ? (
+                    <label className="flex flex-col gap-1.5 animate-fade-in">
+                      <span className="label">Custom Caste (English) *</span>
+                      <input
+                        className="field mt-1"
+                        required
+                        value={form.religion?.caste === "Others" ? "" : form.religion?.caste || ""}
+                        onChange={(e) => updateProfile("religion", "caste", e.target.value)}
+                        onBlur={async (e) => {
+                          const translated = await translateToTamil(e.target.value);
+                          if (translated) {
+                            updateProfile("religion", "casteTamil", translated);
+                          }
+                        }}
+                        placeholder="Type custom caste in English"
+                      />
+                    </label>
+                  ) : (
+                    <label className="flex flex-col gap-1.5 animate-fade-in">
+                      <span className="label">தனிப்பயன் சாதி (தமிழ்) *</span>
+                      <input
+                        className="field mt-1"
+                        required
+                        value={form.religion?.casteTamil || ""}
+                        onChange={(e) => updateProfile("religion", "casteTamil", e.target.value)}
+                        onBlur={async (e) => {
+                          const translated = await translateToEnglish(e.target.value);
+                          if (translated) {
+                            updateProfile("religion", "caste", translated);
+                          }
+                        }}
+                        placeholder="தனிப்பயன் சாதியை தமிழில் தட்டச்சு செய்க"
+                      />
+                    </label>
+                  )}
                 </>
               )}
 
-              {/* Sub Caste (English) */}
-              <label className="flex flex-col gap-1.5">
-                <span className="label">{language === "en" ? "Sub-Caste (English)" : "உட்சாதி (ஆங்கிலம்)"}</span>
-                <input
-                  className="field mt-1"
-                  value={form.religion?.subCaste || ""}
-                  onChange={(e) => updateProfile("religion", "subCaste", e.target.value)}
-                  onBlur={async (e) => {
-                    const translated = await translateToTamil(e.target.value);
-                    if (translated) {
-                      updateProfile("religion", "subCasteTamil", translated);
-                    }
-                  }}
-                  placeholder={language === "en" ? "E.g., Iyer / Sect" : "உதாரணம்: ஐயர் / பிரிவு"}
-                />
-              </label>
-
-              {/* Sub Caste (Tamil) */}
-              <label className="flex flex-col gap-1.5 animate-fade-in">
-                <span className="label">{language === "en" ? "Sub-Caste (Tamil)" : "உட்சாதி (தமிழ்)"}</span>
-                <input
-                  className="field mt-1"
-                  value={form.religion?.subCasteTamil || ""}
-                  onChange={(e) => updateProfile("religion", "subCasteTamil", e.target.value)}
-                  placeholder="உதாரணம்: ஐயர், ஐயங்கார்..."
-                />
-              </label>
+              {/* Sub Caste Input */}
+              {language === "en" ? (
+                <label className="flex flex-col gap-1.5">
+                  <span className="label">Sub-Caste (English)</span>
+                  <input
+                    className="field mt-1"
+                    value={form.religion?.subCaste || ""}
+                    onChange={(e) => updateProfile("religion", "subCaste", e.target.value)}
+                    onBlur={async (e) => {
+                      const translated = await translateToTamil(e.target.value);
+                      if (translated) {
+                        updateProfile("religion", "subCasteTamil", translated);
+                      }
+                    }}
+                    placeholder="E.g., Iyer, Sect"
+                  />
+                </label>
+              ) : (
+                <label className="flex flex-col gap-1.5">
+                  <span className="label">உட்சாதி (தமிழ்)</span>
+                  <input
+                    className="field mt-1"
+                    value={form.religion?.subCasteTamil || ""}
+                    onChange={(e) => updateProfile("religion", "subCasteTamil", e.target.value)}
+                    onBlur={async (e) => {
+                      const translated = await translateToEnglish(e.target.value);
+                      if (translated) {
+                        updateProfile("religion", "subCaste", translated);
+                      }
+                    }}
+                    placeholder="உதாரணம்: ஐயர், ஐயங்கார்..."
+                  />
+                </label>
+              )}
               <label className="flex flex-col gap-1.5">
                 <span className="label">{t("fieldMotherTongue")} *</span>
                 <select
