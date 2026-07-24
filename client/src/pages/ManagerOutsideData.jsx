@@ -159,7 +159,13 @@ export default function ManagerOutsideData({ editMode = false, prefillData = nul
         onSuccess();
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || (language === "en" ? "Failed to create profile." : "சுயவிவரத்தை உருவாக்க முடியவில்லை."));
+      const errData = err.response?.data;
+      if (errData?.errors && Array.isArray(errData.errors)) {
+        const msg = errData.errors.map(e => e.msg).join(", ");
+        toast.error(msg);
+      } else {
+        toast.error(errData?.message || (language === "en" ? "Failed to create profile." : "சுயவிவரத்தை உருவாக்க முடியவில்லை."));
+      }
     } finally {
       setSaving(false);
     }

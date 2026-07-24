@@ -133,7 +133,13 @@ export default function AdminCreateProfile() {
       toast.success("Client profile created and verified successfully!");
       navigate("/admin/users");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to create client profile.");
+      const errData = err.response?.data;
+      if (errData?.errors && Array.isArray(errData.errors)) {
+        const msg = errData.errors.map(e => e.msg).join(", ");
+        toast.error(msg);
+      } else {
+        toast.error(errData?.message || "Failed to create client profile.");
+      }
     } finally {
       setSaving(false);
     }
